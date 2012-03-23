@@ -1,14 +1,10 @@
 
 var Message = function(message) {
 	this.prefix = null;
-	this.command = null;
 	this.middle = null;
 	this.trailing = null;
-	this.params = [];
+	this.params = null;
 
-	if (typeof(message) == 'string') {
-		this.parse(message);
-	}
 	if (typeof(message) == 'object') {
 		this.copy(message);
 	}
@@ -40,70 +36,6 @@ Message.prototype = {
 			}
 		}
 	},
-	parse: function(message) {
-		var len = message.length;
-		var curSpaceIndex = 0;
-		var nextSpaceIndex = -1;
-
-		curSpaceIndex = message.indexOf(' ');
-		if (message.indexOf(':') == 0) {
-			this.prefix = new Prefix(message.substring(0, curSpaceIndex));
-		}
-
-		while (message.charAt(curSpaceIndex) == ' ') {
-			curSpaceIndex++;
-		}
-
-		nextSpaceIndex = message.indexOf(' ', curSpaceIndex);
-		if (nextSpaceIndex != -1) {
-			this.command = message.substring(curSpaceIndex, nextSpaceIndex);
-		} else {
-			this.command = message.substring(curSpaceIndex);
-		}
-		curSpaceIndex = nextSpaceIndex;
-
-		if (curSpaceIndex < 0) {
-			return;
-		}
-
-		while (curSpaceIndex < len && message.charAt(curSpaceIndex) == ' ') {
-			curSpaceIndex++;
-		}
-		curSpaceIndex--;
-
-		var trailIndex = message.indexOf(' :', curSpaceIndex);
-		if (trailIndex != -1) {
-			this.trailing = message.substring(trailIndex + 2);
-		} else {
-			trailIndex = message.lastIndexOf(' ');
-			if (trailIndex != -1 && trailIndex > curSpaceIndex) {
-				this.trailing = message.substring(trailIndex + 1);
-			}
-		}
-
-		if (curSpaceIndex < trailIndex) {
-			this.middle = message.substring(curSpaceIndex + 1, trailIndex);
-		}
-
-		if (this.middle != null) {
-			var last = 0;
-			var index = 0;
-			var len = this.middle.length;
-			while (index < len) {
-				if (this.middle.charAt(index) == ' ') {
-					this.params.push(this.middle.substring(last, index));
-					last = index + 1;
-				}
-				index++;
-			}
-			if (last != len) {
-				this.params.push(this.middle.substring(last));
-			}
-			if (this.trailing != null) {
-				this.params.push(this.trailing);
-			}
-		}
-	},
 	setPrefix: function(prefix) {
 		if (prefix !== undefined && prefix !== null) {
 			this.prefix = Prefix(prefix);
@@ -119,18 +51,14 @@ Message.prototype = {
 		throw "Must specify a valid command";
 	},
 	setMiddle: function() {
-		var firstArg = true;
-		this.middle = '';
+		this.params = [];
 		for (var i=0, len=arguments.length; i<len; i++) {
 			var arg = arguments[i];
 			if (arg !== undefined && arg !== null) {
-				if (!firstArg) {
-					this.middle += ' ';
-				}
-				this.middle += arg;
-				firstArg = false;
+				this.params.push(arg);
 			}
 		}
+		this.middle = this.params.join(' ');
 	},
 	setTrailing: function(trailing) {
 		if (trailing !== undefined && trailing !== null) {
@@ -197,3 +125,4 @@ Prefix.prototype = {
 
 
 exports.Message = Message;
+exports.Prefix = Prefix;
