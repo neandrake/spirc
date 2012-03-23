@@ -3,7 +3,7 @@ var util = require('util');
 var tokread = require('./tokenreader.js');
 var cliopt = require('./clientopts.js');
 var msg = require('./message.js');
-var cmd = require('./commands.js');
+var rsp = require('./responses.js');
 
 var Client = function(opts) {
 	this.opts = new cliopt.ClientOpts(opts);
@@ -39,7 +39,7 @@ Client.prototype.connect = function(callback) {
 
 	var lineReader = new tokread.TokenReader(self.conn, {delimiter: msg.Message.delim});
 	lineReader.addListener('onTokenFound', function(line) {
-		self.emit('onMessageReceived', cmd.parse(line));
+		self.emit('onMessageReceived', rsp.parse(line));
 	});
 
 	self.addListener('_onMessageSendRequested', self._onMessageSendRequested);
@@ -64,7 +64,6 @@ Client.prototype._onMessageSendRequested = function() {
 	message.sentTimestamp = new Date();
 	this.lastMessageSent = message;
 	this.conn.write(message.raw());
-	this.emit('_onMessageSendRequested');
 };
 
 
