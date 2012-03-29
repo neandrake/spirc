@@ -1,165 +1,193 @@
 var util = require('util');
 var msg = require('./message.js');
 
-var Away = function(msg) {
-	msg.Message.call(this);
-	this.setTrailing(msg);
+var Command = function(message) {
+	msg.Message.call(this, message);
 };
-util.inherits(Away, msg.Message);
+util.inherits(Command, msg.Message);
+Command.prototype.setCommand = function(command) {
+	if (command !== undefined && command !== null) {
+		this.command = command.toUpperCase();
+		return;
+	}
+	throw "Must specify a valid command";
+};
+Command.prototype.raw = function() {
+	var val = '';
+	if (this.prefix !== undefined && this.prefix !== null) {
+		val += this.prefix.raw();
+		val += ' ';
+	}
+	val += this.command;
+	if (this.middle !== undefined && this.middle !== null) {
+		val += ' ' + this.middle;
+	}
+	if (this.trailing !== undefined && this.trailing !== null) {
+		val += ' :' + this.trailing;
+	}
+	val += msg.Message.delim;
+	return val;
+};
+
+var Away = function(message) {
+	Command.call(this);
+	this.setTrailing(message);
+};
+util.inherits(Away, Command);
 Away.prototype.command = 'AWAY';
 
 var GetMode = function(chan) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(chan);
 };
-util.inherits(GetMode, msg.Message);
+util.inherits(GetMode, Command);
 GetMode.prototype.command = 'MODE';
 
 var Invite = function(nick, chan) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(nick, chan);
 };
-util.inherits(Invite, msg.Message);
+util.inherits(Invite, Command);
 Invite.prototype.command = 'INVITE';
 
 var IsOn = function(nick) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(nick);
 };
-util.inherits(IsOn, msg.Message);
+util.inherits(IsOn, Command);
 IsOn.prototype.command = 'ISON';
 
 var Join = function(chan, key) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(chan, key);
 };
-util.inherits(Join, msg.Message);
+util.inherits(Join, Command);
 Join.prototype.command = 'JOIN';
 
-var Kick = function(chan, nick, msg) {
-	msg.Message.call(this);
+var Kick = function(chan, nick, message) {
+	Command.call(this);
 	this.setMiddle(chan, nick);
-	this.setTrailing(msg);
+	this.setTrailing(message);
 };
-util.inherits(Kick, msg.Message);
+util.inherits(Kick, Command);
 Kick.prototype.command = 'KICK';
 
 var List = function(chan) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(chan);
 };
-util.inherits(List, msg.Message);
+util.inherits(List, Command);
 List.prototype.command = 'LIST';
 
 var Names = function(chan) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(chan);
 };
-util.inherits(Names, msg.Message);
+util.inherits(Names, Command);
 Names.prototype.command = 'NAMES';
 
 var Nick = function(nick) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(nick);
 };
-util.inherits(Nick, msg.Message);
+util.inherits(Nick, Command);
 Nick.prototype.command = 'NICK';
 
-var Notice = function(target, msg) {
-	msg.Message.call(this);
+var Notice = function(target, message) {
+	Command.call(this);
 	this.setCommand(Notice.command);
 	this.setMiddle(target);
-	this.setTrailing(msg);
+	this.setTrailing(message);
 };
-util.inherits(Notice, msg.Message);
+util.inherits(Notice, Command);
 Notice.prototype.command = 'NOTICE';
 
 var Pass = function(pass) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(pass);
 };
-util.inherits(Pass, msg.Message);
+util.inherits(Pass, Command);
 Pass.prototype.command = 'PASS';
 
-var PrivMsg = function(target, msg) {
-	msg.Message.call(this);
+var PrivMsg = function(target, message) {
+	Command.call(this);
 	this.setMiddle(target);
-	this.setTrailing(msg);
+	this.setTrailing(message);
 };
-util.inherits(PrivMsg, msg.Message);
+util.inherits(PrivMsg, Command);
 PrivMsg.prototype.command = 'PRIVMSG';
 
-var Part = function(chan, msg) {
-	msg.Message.call(this);
+var Part = function(chan, message) {
+	Command.call(this);
 	this.setMiddle(chan);
-	this.setTrailing(msg);
+	this.setTrailing(message);
 };
-util.inherits(Part, msg.Message);
+util.inherits(Part, Command);
 Part.prototype.command = 'PART';
 
 var Pong = function(ping) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setTrailing(ping);
 };
-util.inherits(Pong, msg.Message);
+util.inherits(Pong, Command);
 Pong.prototype.command = 'PONG';
 
-var Quit = function(msg) {
-	msg.Message.call(this);
-	this.setTrailing(msg);
+var Quit = function(message) {
+	Command.call(this);
+	this.setTrailing(message);
 };
-util.inherits(Quit, msg.Message);
+util.inherits(Quit, Command);
 Quit.prototype.command = 'QUIT';
 
 var SetMode = function(target, mode) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(target, mode);
 };
-util.inherits(SetMode, msg.Message);
+util.inherits(SetMode, Command);
 SetMode.prototype.name = 'MODE';
 
 var Topic = function(chan, topic) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(chan);
 	this.setTrailing(topic);
 };
-util.inherits(Topic, msg.Message);
+util.inherits(Topic, Command);
 Topic.prototype.command = 'TOPIC';
 
 var User = function(user, ip, host, real) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(user, ip, host);
 	this.setTrailing(real);
 };
-util.inherits(User, msg.Message);
+util.inherits(User, Command);
 User.prototype.command = 'USER';
 
 var Who = function(criteric) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(criteric);
 };
-util.inherits(Who, msg.Message);
+util.inherits(Who, Command);
 Who.prototype.command = 'WHO';
 
 var Whois = function(nick) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(nick);
 };
-util.inherits(Whois, msg.Message);
+util.inherits(Whois, Command);
 Whois.prototype.command = 'WHOIS';
 
 var Whowas = function(nick) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(nick);
 };
-util.inherits(Whowas, msg.Message);
+util.inherits(Whowas, Command);
 Whowas.prototype.command = 'WHOWAS';
 
 var UserHost = function(nicks) {
-	msg.Message.call(this);
+	Command.call(this);
 	this.setMiddle(nicks);
 };
-util.inherits(UserHost, msg.Message);
+util.inherits(UserHost, Command);
 UserHost.prototype.command = 'USERHOST';
 
 

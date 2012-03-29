@@ -11,22 +11,6 @@ var Message = function(message) {
 };
 Message.prototype = {
 	constructor: Message,
-	raw: function() {
-		var val = '';
-		if (this.prefix !== undefined && this.prefix !== null) {
-			val += this.prefix.raw();
-			val += ' ';
-		}
-		val += this.command;
-		if (this.middle !== undefined && this.middle !== null) {
-			val += ' ' + this.middle;
-		}
-		if (this.trailing !== undefined && this.trailing !== null) {
-			val += ' :' + this.trailing;
-		}
-		val += Message.delim;
-		return val;
-	},
 	copy: function(msg) {
 		var keys = Object.keys(this);
 		for (var i=0; i<keys.length; i++) {
@@ -42,13 +26,6 @@ Message.prototype = {
 		} else {
 			this.prefix = null;
 		}
-	},
-	setCommand: function(command) {
-		if (command !== undefined && command !== null) {
-			this.command = command.toUpperCase();
-			return;
-		}
-		throw "Must specify a valid command";
 	},
 	setMiddle: function() {
 		this.params = [];
@@ -70,7 +47,7 @@ Message.prototype = {
 			this.trailing = null;
 		}
 	},
-	print: function() {
+	printraw: function() {
 		return this.raw().replace(Message.delim, '');
 	}
 };
