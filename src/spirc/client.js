@@ -9,9 +9,11 @@ var targets = require('./targets.js');
 var Client = function(opts) {
 	this.opts = new cliopt.ClientOpts(opts);
 	this.server = new targets.Host(null);
+	this.user = new targets.User(null);
 	this._any = new targets.Target(null);
-	this.messageSendQueue = [];
-	this.lastMessageSent = null;
+	this.commandQueue = [];
+	this.lastCommandSent = null;
+	this.lastResponseRecv = null;
 	this.targets = {};
 };
 util.inherits(Client, process.EventEmitter);
@@ -43,11 +45,11 @@ Client.prototype.connect = function(callback) {
 
 	var lineReader = new tokread.TokenReader(self.conn, {delimiter: msg.Message.delim});
 	lineReader.on('onTokenFound', function(line) {
-		self.emit('_onMessageReceived', line);
+		self.emit('_onResponseReceived', line);
 	});
 
-	self.on('_onMessageReceived', self._onMessageReceived);
-	self.on('_onMessageSendRequested', self._onMessageSendRequested);
+	self.on('_onResponseReceived', self._onResponseReceived);
+	self.on('_onCommandRequest', self._onCommandRequest);
 
 	self.conn.connect(self.opts.port, self.opts.server);
 };
@@ -60,40 +62,49 @@ Client.prototype.disconnect = function() {
 	this.conn.end();
 };
 
-Client.prototype.send = function(message) {
-	this.messageSendQueue.push(message);
-	this.emit('_onMessageSendRequested');
+Client.prototype.send = function(command) {
+	var cmd = null;
+	for (var i=0, len=arguments.length; i<len; i++) {
+		cmd = arguments[i];
+		if (cmd != null) {
+			this.commandQueue.push(cmd);
+			this.emit('_onCommandRequest');
+		}
+	}
 };
 
-Client.prototype._onMessageReceived = function(line) {
+Client.prototype._onResponseReceived = function(line) {
 	var response = rsp.parse(line);
 	if (response == null || response.prefix == null || response.prefix.target == null) {
-		this.emit('_onMessageReceived', response);
+		this.emit('_onResponseReceived', response);
 		return;
 	}
+
+	response.recvTimestamp = new Date();
+	this.lastResponseRecv = response;
 
 	var name = response.prefix.target;
 	var target = this.target(name);
-	var event = response.cmdcode;
-	if (event == null) {
-		event = 'any';
+	var type = response.type;
+	if (type != null) {
+		target.emit(type, response);
 	}
-	target.emit(event, response);
-	this._any.emit('any', response);
+	target.emit('_any', response);
+	this._any.emit('_any', response);
 };
 
-Client.prototype.onAny = function(callback) {
-	this._any.on('any', callback);
+Client.prototype.onAnyResponse = function(callback) {
+	this._any.on('_any', callback);
 }
 
-Client.prototype._onMessageSendRequested = function() {
-	if (this.messageSendQueue.length == 0) {
+Client.prototype._onCommandRequest = function() {
+	if (this.commandQueue.length == 0) {
 		return;
 	}
-	var message = this.messageSendQueue.shift();
-	message.sentTimestamp = new Date();
-	this.lastMessageSent = message;
-	this.conn.write(message.raw());
+	var command = this.commandQueue.shift();
+	command.sentTimestamp = new Date();
+	this.lastCommandSent = command;
+	this.conn.write(command.raw());
 };
 
 Client.prototype._getTarget = function(name) {
@@ -102,8 +113,8 @@ Client.prototype._getTarget = function(name) {
 		return target;
 	}
 
-	if (this.server.host == null) {
-		this.server.host = name;
+	if (this.server.name == null) {
+		this.server.name = name;
 		target = this.server;
 	} else if (targets.Channel.isValidChannelName(name)) {
 		target = new targets.Channel(name);
@@ -112,7 +123,21 @@ Client.prototype._getTarget = function(name) {
 	}
 	this.targets[name] = target;
 	return target;
-}
+};
+
+Client.prototype.register = function() {
+	if (this.user.name != null) {
+		this.targets[this.user.name] = null;
+	}
+	this.user.name = this.opts.nick;
+	this.targets[this.user.name] = this.user;
+
+	var commands = [];
+	commands.push(this.opts.getPassCommand());
+	commands.push(this.opts.getNickCommand());
+	commands.push(this.opts.getUserCommand());
+	this.send.apply(this, commands);
+};
 
 
 exports.Client = Client;

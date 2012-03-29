@@ -2,9 +2,18 @@ var util = require('util')
 var msg = require('./message.js');
 
 var Response = function(response) {
+	this.type = null;
+
 	msg.Message.call(this, response);
 	if (typeof(response) == 'string') {
 		this.parse(response);
+	}
+
+	if (this.type == null) {
+		this.type = this.cmdcode;
+	}
+	if (this.type == null) {
+		this.type = this.cmdtype;
 	}
 };
 util.inherits(Response, msg.Message);
@@ -32,6 +41,13 @@ Response.prototype.parse = function(line) {
 		this.cmdcode = this.cmdtype;
 		this.cmdtype = undefined;
 	}
+
+	if (this.cmdcode != null) {
+		this.type = this.cmdcode;
+	} else {
+		this.type = this.cmdtype;
+	}
+
 	curSpaceIndex = nextSpaceIndex;
 
 	if (curSpaceIndex < 0) {
@@ -79,12 +95,6 @@ Response.prototype.parse = function(line) {
 };
 Response.prototype.readable = function() {
 	var val = '';
-	if (this.cmdtype !== undefined && this.cmdtype !== null) {
-		val += this.cmdtype + ' ';
-	} else if (this.cmdcode !== undefined && this.cmdcode !== null) {
-		val += this.cmdcode + ' ';
-	}
-
 	if (this.middle !== undefined && this.middle !== null) {
 		val += this.middle + ' ';
 	}
