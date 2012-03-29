@@ -4,8 +4,8 @@ var Target = function(name) {
 	this.name = name;
 };
 util.inherits(Target, process.EventEmitter);
-Target.prototype.onAny = function(callback) {
-	this.on('any', callback);
+Target.prototype.onAnyResponse = function(callback) {
+	this.on('_any', callback);
 };
 
 var User = function(name) {

@@ -154,10 +154,10 @@ var Topic = function(chan, topic) {
 util.inherits(Topic, Command);
 Topic.prototype.command = 'TOPIC';
 
-var User = function(user, ip, host, real) {
+var User = function(username, hostname, servername, realname) {
 	Command.call(this);
-	this.setMiddle(user, ip, host);
-	this.setTrailing(real);
+	this.setMiddle(username, hostname, servername);
+	this.setTrailing(realname);
 };
 util.inherits(User, Command);
 User.prototype.command = 'USER';
