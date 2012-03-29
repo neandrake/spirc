@@ -4,14 +4,12 @@ var tokread = require('./tokenreader.js');
 var cliopt = require('./clientopts.js');
 var msg = require('./message.js');
 var rsp = require('./responses.js');
-var chan = require('./channel.js');
-var user = require('./user.js');
-var host = require('./host.js');
+var targets = require('./targets.js');
 
 var Client = function(opts) {
 	this.opts = new cliopt.ClientOpts(opts);
-	this.server = new host.Host(null);
-	this._any = new host.Host(null);
+	this.server = new targets.Host(null);
+	this._any = new targets.Target(null);
 	this.messageSendQueue = [];
 	this.lastMessageSent = null;
 	this.targets = {};
@@ -84,7 +82,7 @@ Client.prototype._onMessageReceived = function(line) {
 	this._any.emit('any', response);
 };
 
-Client.prototype.any = function(callback) {
+Client.prototype.onAny = function(callback) {
 	this._any.on('any', callback);
 }
 
@@ -107,10 +105,10 @@ Client.prototype._getTarget = function(name) {
 	if (this.server.host == null) {
 		this.server.host = name;
 		target = this.server;
-	} else if (chan.Channel.isValidChannelName(name)) {
-		target = new chan.Channel(name);
+	} else if (targets.Channel.isValidChannelName(name)) {
+		target = new targets.Channel(name);
 	} else {
-		target = new user.User(name);
+		target = new targets.User(name);
 	}
 	this.targets[name] = target;
 	return target;
