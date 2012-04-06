@@ -5,7 +5,8 @@ var cmd = require('./commands.js');
 
 
 var c = new client.Client({
-	nick: 'jnitros'
+	server: 'napoleon.mimsoftware.com',
+	nick: 'gewn'
 });
 
 c.on('onConnected', function() {
@@ -16,7 +17,7 @@ c.on('onError', function(err) {
 	console.log("> Error: " + err);
 });
 c.on('onDisconnect', function() {
-	console.log("> Disconnected from " + this.server.name);
+	console.log("> Disconnected from " + this.opts.server);
 })
 
 process.on('SIGINT', function() {
@@ -24,11 +25,25 @@ process.on('SIGINT', function() {
 });
 
 c.server.onAnyResponse(function(response) {
-	console.log(this.name + "> " + response.readable());
+	var readable = response.readable();
+	if (readable == '');
+	readable = response.type;
+	console.log(this.name + "> " + readable);
 });
 
 c.user.onAnyResponse(function(response) {
-	console.log(this.name + "> " + response.readable());
+	var readable = response.readable();
+	if (readable == '');
+	readable = response.type;
+	console.log(this.name + "> " + readable);
+});
+
+c.user.once('MODE', function() {
+	c.target('#mim').join();
+	c.target('#mim').say('hi');
+	c.target('#mim').say('bye');
+	c.target('#mim').part();
+	c.server.quit();
 });
 
 c.connect();

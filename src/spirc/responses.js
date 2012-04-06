@@ -1,4 +1,4 @@
-var util = require('util')
+var util = require('util');
 var msg = require('./message.js');
 
 var Response = function(response) {
