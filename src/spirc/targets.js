@@ -1,27 +1,42 @@
 var util = require('util');
+var cmd = require('./commands.js');
 
-var Target = function(name) {
+var Target = function(client, name) {
+	this.client = client;
 	this.name = name;
 };
 util.inherits(Target, process.EventEmitter);
 Target.prototype.onAnyResponse = function(callback) {
 	this.on('_any', callback);
 };
+Target.prototype.say = function(msg) {
+	this.client.send(new cmd.PrivMsg(this.name, msg));
+};
 
-var User = function(name) {
-	Target.call(this, name);
+
+var User = function(client, name) {
+	Target.call(this, client, name);
 };
 util.inherits(User, Target);
 
-var Channel = function(name) {
-	Target.call(this, name);
+var Channel = function(client, name) {
+	Target.call(this, client, name);
 };
 util.inherits(Channel, Target);
+Channel.prototype.join = function() {
+	this.client.send(new cmd.Join(this.name));
+};
+Channel.prototype.part = function(msg) {
+	this.client.send(new cmd.Part(this.name, msg));
+};
 
-var Host = function(name) {
-	Target.call(this, name);
+var Host = function(client, name) {
+	Target.call(this, client, name);
 };
 util.inherits(Host, Target);
+Host.prototype.quit = function(msg) {
+	this.client.send(new cmd.Quit(this.name, msg));
+};
 
 Channel.startTokens = ['#', '&', '!', '+'];
 Channel.charLimit = 50;
@@ -40,7 +55,7 @@ Channel.isValidChannelName = function(name) {
 	}
 
 	for (p=0, plen=Channel.illegalTokens.length; p<plen; p++) {
-		if (name.indexOf(illegalChar) != -1) {
+		if (name.indexOf(Channel.illegalTokens[p]) != -1) {
 			return false;
 		}
 	}

@@ -8,9 +8,9 @@ var targets = require('./targets.js');
 
 var Client = function(opts) {
 	this.opts = new cliopt.ClientOpts(opts);
-	this.server = new targets.Host(null);
-	this.user = new targets.User(null);
-	this._any = new targets.Target(null);
+	this.server = new targets.Host(this, opts.server);
+	this.user = new targets.User(this, opts.nick);
+	this._any = new targets.Target(this, null);
 	this.commandQueue = [];
 	this.lastCommandSent = null;
 	this.lastResponseRecv = null;
@@ -68,23 +68,26 @@ Client.prototype.send = function(command) {
 		cmd = arguments[i];
 		if (cmd != null) {
 			this.commandQueue.push(cmd);
-			this.emit('_onCommandRequest');
 		}
 	}
+	this.emit('_onCommandRequest');
 };
 
 Client.prototype._onResponseReceived = function(line) {
 	var response = rsp.parse(line);
-	if (response == null || response.prefix == null || response.prefix.target == null) {
-		this.emit('_onResponseReceived', response);
+	if (response == null) {
+		console.log('unable to parse: ' + line);
 		return;
 	}
 
 	response.recvTimestamp = new Date();
 	this.lastResponseRecv = response;
 
-	var name = response.prefix.target;
-	var target = this.target(name);
+	var target = this.server;
+	if (response.prefix != null) {
+		target = this.target(response.prefix.target);
+	}
+
 	var type = response.type;
 	if (type != null) {
 		target.emit(type, response);
@@ -105,21 +108,26 @@ Client.prototype._onCommandRequest = function() {
 	command.sentTimestamp = new Date();
 	this.lastCommandSent = command;
 	this.conn.write(command.raw());
+
+	if (this.commandQueue.length > 0) {
+		this.emit('_onCommandRequest');
+	}
 };
 
 Client.prototype._getTarget = function(name) {
+	if (name == null) {
+		return this.server;
+	}
+
 	var target = this.targets[name];
 	if (target != null) {
 		return target;
 	}
 
-	if (this.server.name == null) {
-		this.server.name = name;
-		target = this.server;
-	} else if (targets.Channel.isValidChannelName(name)) {
-		target = new targets.Channel(name);
+	if (targets.Channel.isValidChannelName(name)) {
+		target = new targets.Channel(this, name);
 	} else {
-		target = new targets.User(name);
+		target = new targets.User(this, name);
 	}
 	this.targets[name] = target;
 	return target;
