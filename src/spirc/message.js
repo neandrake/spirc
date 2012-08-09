@@ -87,13 +87,13 @@ Prefix.prototype = {
 
 		index = prefix.indexOf('@');
 		if (index != -1) {
-			this.host = prefix.substring(index);
+			this.host = prefix.substring(index + 1);
 			prefix = prefix.substring(0, index);
 		}
 
 		index = prefix.indexOf('!');
 		if (index != -1) {
-			this.user = prefix.substring(index);
+			this.user = prefix.substring(index + 1);
 			prefix = prefix.substring(0, index);
 		}
 		this.target = prefix;
