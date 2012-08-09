@@ -7,10 +7,13 @@ var Target = function(client, name) {
 };
 util.inherits(Target, process.EventEmitter);
 Target.prototype.onAnyResponse = function(callback) {
-	this.on('_any', callback);
+	this.on('_anyResponse', callback);
 };
 Target.prototype.say = function(msg) {
 	this.client.send(new cmd.PrivMsg(this.name, msg));
+};
+Target.prototype.onAnySaid = function(callback) {
+	this.on('PRIVMSG', callback);
 };
 
 
