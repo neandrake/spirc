@@ -1,24 +1,24 @@
-var net  = require('net');
-var util = require('util');
 var client = require('./client.js');
 var cmd = require('./commands.js');
 
-
+var chan = "#irctest";
 var c = new client.Client({
-	server: 'napoleon.mimsoftware.com',
-	nick: 'gewn'
+	nick: 'doorbot',
+	altnicks: ['gewnbot', 'doordoorbot'],
+	//server: 'napoleon.mimsoftware.com',
+	server: 'chat.freenode.net'
 });
 
 c.on('onConnected', function() {
-	console.log("> Connected to " + this.opts.server + ":" + this.opts.port);
+	console.log(this.opts.server + "> connected on port " + this.opts.port);
 	c.register();
 });
 c.on('onError', function(err) {
-	console.log("> Error: " + err);
+	console.log(this.opts.server + "> error: " + err);
 });
 c.on('onDisconnect', function() {
-	console.log("> Disconnected from " + this.opts.server);
-})
+	console.log(this.opts.server + "> disconnected");
+});
 
 process.on('SIGINT', function() {
 	c.disconnect();
@@ -26,24 +26,33 @@ process.on('SIGINT', function() {
 
 c.server.onAnyResponse(function(response) {
 	var readable = response.readable();
-	if (readable == '');
-	readable = response.type;
-	console.log(this.name + "> " + readable);
+	if (readable == '') {
+		readable = response.type;
+	}
+	if (response.type.indexOf(':') == 0) {
+		console.log('?: ' + response._rawline);
+	}
+	console.log("{"+ this.name + "|" + response.type + "}> " + readable);
 });
 
 c.user.onAnyResponse(function(response) {
 	var readable = response.readable();
-	if (readable == '');
-	readable = response.type;
-	console.log(this.name + "> " + readable);
+	if (readable == '') {
+		readable = response.type;
+	}
+	console.log("[" + this.name + "|" + response.type + "]> " + readable);
 });
 
-c.user.once('MODE', function() {
-	c.target('#mim').join();
-	c.target('#mim').say('hi');
-	c.target('#mim').say('bye');
-	c.target('#mim').part();
-	c.server.quit();
+c.server.once('001', function() {
+	c.target(chan).join();
+});
+
+c.target(chan).onAnyResponse(function(response) {
+	var readable = response.readable();
+	if (readable == '') {
+		readable = response.type;
+	}
+	console.log("(" + response.prefix.target + "->" + this.name + "|" + response.type + ")> " + readable);
 });
 
 c.connect();

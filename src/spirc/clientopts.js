@@ -6,11 +6,14 @@ var ClientOpts = function(opts) {
 	self.port = 6667;
 	self.nick = null;
 	self.pass = null;
+	self.altnicks = [];
 
 	self.username = 'username';
 	self.hostname = '10.0.0.1';
 	self.servername = '10.0.0.1';
 	self.realname = 'realname';
+
+	self._altnick_iterator = 0;
 
 	if (typeof(opts) == 'object') {
 		var keys = Object.keys(self);
@@ -33,6 +36,7 @@ ClientOpts.prototype = {
 		);
 	},
 	getNickCommand: function() {
+		this._altnick_iterator = 0;
 		return new cmd.Nick(this.nick);
 	},
 	getPassCommand: function() {
@@ -40,6 +44,17 @@ ClientOpts.prototype = {
 			return new cmd.Pass(this.pass);
 		}
 		return null;
+	},
+	getAltNickCommand: function() {
+		if (this.altnicks.length < this._altnick_iterator) {
+			return null;
+		}
+		var altnick = this.altnicks[this._altnick_iterator];
+		if (altnick != null) {
+			this._altnick_iterator++;
+			return new cmd.Nick(altnick);
+		}
+		return new cmd.Quit();
 	}
 };
 

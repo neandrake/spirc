@@ -5,6 +5,7 @@ var cliopt = require('./clientopts.js');
 var msg = require('./message.js');
 var rsp = require('./responses.js');
 var targets = require('./targets.js');
+var cmd = require('./commands.js');
 
 var Client = function(opts) {
 	this.opts = new cliopt.ClientOpts(opts);
@@ -56,13 +57,18 @@ Client.prototype.connect = function(callback) {
 
 Client.prototype.target = function(name) {
 	return this._getTarget(name);
-}
+};
+
+Client.prototype.hasTarget = function(name) {
+	return this.targets[name] != null;
+};
 
 Client.prototype.disconnect = function() {
+	this.server.quit();
 	this.conn.end();
 };
 
-Client.prototype.send = function(command) {
+Client.prototype.send = function() {
 	var cmd = null;
 	for (var i=0, len=arguments.length; i<len; i++) {
 		cmd = arguments[i];
@@ -74,18 +80,13 @@ Client.prototype.send = function(command) {
 };
 
 Client.prototype._onResponseReceived = function(line) {
-	var response = rsp.parse(line);
-	if (response == null) {
-		console.log('unable to parse: ' + line);
-		return;
-	}
-
+	var response = new rsp.Response(line);
 	response.recvTimestamp = new Date();
 	this.lastResponseRecv = response;
 
 	var target = this.server;
-	if (response.prefix != null) {
-		target = this.target(response.prefix.target);
+	if (response.middle != null && this.hasTarget(response.middle)) {
+		target = this.target(response.middle);
 	}
 
 	var type = response.type;
@@ -144,6 +145,16 @@ Client.prototype.register = function() {
 	commands.push(this.opts.getPassCommand());
 	commands.push(this.opts.getNickCommand());
 	commands.push(this.opts.getUserCommand());
+
+	var self = this;
+	this.server.on('433', function() {
+		self.send(self.opts.getAltNickCommand());
+	});
+	this.server.on('PING', function() {
+		console.log('ponging');
+		self.send(new cmd.Pong(self.user.name));
+	});
+
 	this.send.apply(this, commands);
 };
 

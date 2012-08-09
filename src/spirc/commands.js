@@ -23,7 +23,7 @@ Command.prototype.raw = function() {
 		val += ' ' + this.middle;
 	}
 	if (this.trailing !== undefined && this.trailing !== null) {
-		val += ' :' + this.trailing;
+		val += this.trailing;
 	}
 	val += msg.Message.delim;
 	return val;
@@ -102,21 +102,6 @@ var Notice = function(target, message) {
 util.inherits(Notice, Command);
 Notice.prototype.command = 'NOTICE';
 
-var Pass = function(pass) {
-	Command.call(this);
-	this.setMiddle(pass);
-};
-util.inherits(Pass, Command);
-Pass.prototype.command = 'PASS';
-
-var PrivMsg = function(target, message) {
-	Command.call(this);
-	this.setMiddle(target);
-	this.setTrailing(message);
-};
-util.inherits(PrivMsg, Command);
-PrivMsg.prototype.command = 'PRIVMSG';
-
 var Part = function(chan, message) {
 	Command.call(this);
 	this.setMiddle(chan);
@@ -125,12 +110,34 @@ var Part = function(chan, message) {
 util.inherits(Part, Command);
 Part.prototype.command = 'PART';
 
-var Pong = function(ping) {
+var Pass = function(pass) {
+	Command.call(this);
+	this.setMiddle(pass);
+};
+util.inherits(Pass, Command);
+Pass.prototype.command = 'PASS';
+
+var Ping = function(ping) {
 	Command.call(this);
 	this.setTrailing(ping);
 };
+util.inherits(Ping, Command);
+Ping.prototype.command = 'PING';
+
+var Pong = function(pong) {
+	Command.call(this);
+	this.setTrailing(pong);
+};
 util.inherits(Pong, Command);
 Pong.prototype.command = 'PONG';
+
+var PrivMsg = function(target, message) {
+	Command.call(this);
+	this.setMiddle(target);
+	this.setTrailing(message);
+};
+util.inherits(PrivMsg, Command);
+PrivMsg.prototype.command = 'PRIVMSG';
 
 var Quit = function(message) {
 	Command.call(this);
@@ -191,9 +198,9 @@ util.inherits(UserHost, Command);
 UserHost.prototype.command = 'USERHOST';
 
 
-exports.Pass = Pass;
-exports.Nick = Nick;
-exports.User = User;
+
+
+
 exports.Away = Away;
 exports.Invite = Invite;
 exports.IsOn = IsOn;
@@ -201,12 +208,16 @@ exports.Join = Join;
 exports.Kick = Kick;
 exports.List = List;
 exports.Names = Names;
-exports.PrivMsg = PrivMsg;
+exports.Nick = Nick;
 exports.Notice = Notice;
 exports.Part = Part;
+exports.Pass = Pass;
+exports.Ping = Ping;
 exports.Pong = Pong;
+exports.PrivMsg = PrivMsg;
 exports.Quit = Quit;
 exports.Topic = Topic;
+exports.User = User;
 exports.Who = Who;
 exports.Whois = Whois;
 exports.Whowas = Whowas;
