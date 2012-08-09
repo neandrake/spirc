@@ -151,7 +151,6 @@ Client.prototype.register = function() {
 		self.send(self.opts.getAltNickCommand());
 	});
 	this.server.on('PING', function() {
-		console.log('ponging');
 		self.send(new cmd.Pong(self.user.name));
 	});
 
