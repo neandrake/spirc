@@ -1,12 +1,12 @@
 var client = require('./client.js');
 var cmd = require('./commands.js');
 
-var chan = "#irctest";
+var chan = "#test";
 var c = new client.Client({
 	nick: 'doorbot',
 	altnicks: ['gewnbot', 'doordoorbot'],
-	//server: 'napoleon.mimsoftware.com',
-	server: 'chat.freenode.net'
+	server: 'napoleon.mimsoftware.com',
+	//server: 'chat.freenode.net'
 });
 
 c.on('onConnected', function() {
@@ -25,34 +25,47 @@ process.on('SIGINT', function() {
 });
 
 c.server.onAnyResponse(function(response) {
+	var target = response.type;
+	if (response.prefix != null) {
+		target = response.prefix.target;
+	}
 	var readable = response.readable();
 	if (readable == '') {
 		readable = response.type;
 	}
-	if (response.type.indexOf(':') == 0) {
-		console.log('?: ' + response._rawline);
-	}
-	console.log("{"+ this.name + "|" + response.type + "}> " + readable);
+
+	console.log(this.name + "/" + target + "> " + readable);
 });
 
 c.user.onAnyResponse(function(response) {
+	var target = response.type;
+	if (response.prefix != null) {
+		target = response.prefix.target;
+	}
 	var readable = response.readable();
 	if (readable == '') {
 		readable = response.type;
 	}
-	console.log("[" + this.name + "|" + response.type + "]> " + readable);
+
+	console.log(this.name + "/" + target + "> " + readable);
 });
 
-c.server.once('001', function() {
+c.onceAny('001', function() {
 	c.target(chan).join();
 });
 
-c.target(chan).onAnyResponse(function(response) {
+c.target(chan).onAnySaid(function(response) {
+	var target = response.type;
+	if (response.prefix != null) {
+		target = response.prefix.target;
+	}
 	var readable = response.readable();
 	if (readable == '') {
 		readable = response.type;
 	}
-	console.log("(" + response.prefix.target + "->" + this.name + "|" + response.type + ")> " + readable);
+
+	console.log(this.name + "/" + target + "> " + readable);
 });
+
 
 c.connect();

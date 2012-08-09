@@ -11,7 +11,7 @@ var Client = function(opts) {
 	this.opts = new cliopt.ClientOpts(opts);
 	this.server = new targets.Host(this, opts.server);
 	this.user = new targets.User(this, opts.nick);
-	this._any = new targets.Target(this, null);
+	this._anyTarget = new targets.Target(this, null);
 	this.commandQueue = [];
 	this.lastCommandSent = null;
 	this.lastResponseRecv = null;
@@ -92,14 +92,19 @@ Client.prototype._onResponseReceived = function(line) {
 	var type = response.type;
 	if (type != null) {
 		target.emit(type, response);
+		this._anyTarget.emit(type, response);
 	}
-	target.emit('_any', response);
-	this._any.emit('_any', response);
+	target.emit('_anyResponse', response);
+	this._anyTarget.emit('_anyResponse', response);
 };
 
-Client.prototype.onAnyResponse = function(callback) {
-	this._any.on('_any', callback);
-}
+Client.prototype.onAny = function(event, callback) {
+	this._anyTarget.on(event, callback);
+};
+
+Client.prototype.onceAny = function(event, callback) {
+	this._anyTarget.once(event, callback);
+};
 
 Client.prototype._onCommandRequest = function() {
 	if (this.commandQueue.length == 0) {
