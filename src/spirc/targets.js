@@ -12,7 +12,7 @@ Target.prototype.onAnyResponse = function(callback) {
 Target.prototype.say = function(msg) {
 	this.client.send(new cmd.PrivMsg(this.name, msg));
 };
-Target.prototype.onAnySaid = function(callback) {
+Target.prototype.onSaid = function(callback) {
 	this.on('PRIVMSG', callback);
 };
 

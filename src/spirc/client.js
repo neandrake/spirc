@@ -45,7 +45,7 @@ Client.prototype.connect = function(callback) {
 	});
 
 	var lineReader = new tokread.TokenReader(self.conn, {delimiter: msg.Message.delim});
-	lineReader.on('onTokenFound', function(line) {
+	lineReader.on('onTokenRead', function(line) {
 		self.emit('_onResponseReceived', line);
 	});
 
@@ -68,13 +68,9 @@ Client.prototype.disconnect = function() {
 	this.conn.end();
 };
 
-Client.prototype.send = function() {
-	var cmd = null;
-	for (var i=0, len=arguments.length; i<len; i++) {
-		cmd = arguments[i];
-		if (cmd != null) {
-			this.commandQueue.push(cmd);
-		}
+Client.prototype.send = function(command) {
+	if (command != null) {
+		this.commandQueue.push(command);
 	}
 	this.emit('_onCommandRequest');
 };
@@ -98,12 +94,34 @@ Client.prototype._onResponseReceived = function(line) {
 	this._anyTarget.emit('_anyResponse', response);
 };
 
-Client.prototype.onAny = function(event, callback) {
-	this._anyTarget.on(event, callback);
+Client.prototype.anyOn = function(event, callback) {
+	var self = this;
+	this._anyTarget.on(event, function(response) {
+		var context = self.server;
+		if (self.hasTarget(response.middle)) {
+			context = self.target(response.middle);
+		}
+		callback.call(context, response);
+	});
 };
 
-Client.prototype.onceAny = function(event, callback) {
-	this._anyTarget.once(event, callback);
+Client.prototype.anyOnce = function(event, callback) {
+	var self = this;
+	this._anyTarget.once(event, function(response) {
+		var context = self.server;
+		if (self.hasTarget(response.middle)) {
+			context = self.target(response.middle);
+		}
+		callback.call(context, response);
+	});
+};
+
+Client.prototype.anyOnAny = function(callback) {
+	this.anyOn('_anyResponse', callback);
+};
+
+Client.prototype.anyOnceAny = function(callback) {
+	this.anyOnce('_anyResponse', callback);
 };
 
 Client.prototype._onCommandRequest = function() {
@@ -145,21 +163,21 @@ Client.prototype.register = function() {
 	}
 	this.user.name = this.opts.nick;
 	this.targets[this.user.name] = this.user;
-
-	var commands = [];
-	commands.push(this.opts.getPassCommand());
-	commands.push(this.opts.getNickCommand());
-	commands.push(this.opts.getUserCommand());
+	this.send(this.opts.getPassCommand());
+	this.send(this.opts.getNickCommand());
+	this.send(this.opts.getUserCommand());
 
 	var self = this;
-	this.server.on('433', function() {
-		self.send(self.opts.getAltNickCommand());
-	});
-	this.server.on('PING', function() {
-		self.send(new cmd.Pong(self.user.name));
-	});
-
-	this.send.apply(this, commands);
+	if (this.opts.autoPong) {
+		this.server.on('PING', function() {
+			self.send(new cmd.Pong(self.user.name));
+		});
+	}
+	if (this.opts.autoAltNick) {
+		this.server.on('433', function() {
+			self.send(self.opts.getAltNickCommand());
+		});
+	}
 };
 
 

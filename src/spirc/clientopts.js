@@ -9,10 +9,12 @@ var ClientOpts = function(opts) {
 	self.altnicks = [];
 
 	self.username = 'username';
-	self.hostname = '10.0.0.1';
-	self.servername = '10.0.0.1';
+	self.hostname = '127.0.0.1';
+	self.servername = '127.0.0.1';
 	self.realname = 'realname';
 
+	self.autoPong = true;
+	self.autoAltNick = true;
 	self._altnick_iterator = 0;
 
 	if (typeof(opts) == 'object') {
