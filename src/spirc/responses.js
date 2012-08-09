@@ -80,10 +80,17 @@ Response.prototype.parse = function(line) {
 	}
 };
 Response.prototype.readable = function() {
-	if (this.trailing != null) {
-		return this.trailing;
+	var readable = '';
+	if (this.middle != null) {
+		readable += this.middle;
+		if (this.trailing != null) {
+			readable += ' ';
+		}
 	}
-	return '';
+	if (this.trailing != null) {
+		readable += this.trailing;
+	}
+	return readable;
 };
 Response.prototype.raw = function() {
 	var val = '';
@@ -98,10 +105,10 @@ Response.prototype.raw = function() {
 		val += this.cmdtype;
 	}
 
-	if (this.middle !== undefined && this.middle !== null) {
+	if (this.middle != null) {
 		val += ' ' + this.middle;
 	}
-	if (this.trailing !== undefined && this.trailing !== null) {
+	if (this.trailing != null) {
 		val += ' :' + this.trailing;
 	}
 	val += msg.Message.delim;
