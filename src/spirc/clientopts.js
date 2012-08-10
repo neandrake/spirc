@@ -15,7 +15,9 @@ var ClientOpts = function(opts) {
 
 	self.autoPong = true;
 	self.autoAltNick = true;
-	self._altnick_iterator = 0;
+	self.logStream = process.stdout;
+
+	self._altnick_iterator = -1;
 
 	if (typeof(opts) == 'object') {
 		var keys = Object.keys(self);
@@ -48,6 +50,7 @@ ClientOpts.prototype = {
 		return null;
 	},
 	getAltNickCommand: function() {
+		this._altnick_iterator++;
 		if (this.altnicks.length < this._altnick_iterator) {
 			return null;
 		}

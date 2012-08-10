@@ -16,6 +16,27 @@ var Client = function(opts) {
 	this.lastCommandSent = null;
 	this.lastResponseRecv = null;
 	this.targets = {};
+
+	var self = this;
+	self.on('onConnected', function() {
+		self._logServerResponse('connected');
+		self.register();
+	});
+
+	self.on('onError', function(err) {
+		self._logServerResponse('error: ' + err);
+	});
+
+	self.on('onDisconnect', function() {
+		self._logServerResponse('disconnected');
+	});
+
+	self.anyOnAny(function(response) {
+		self._log(response);
+	});
+
+	self.on('_onResponseReceived', self._onResponseReceived);
+	self.on('_onCommandRequest', self._onCommandRequest);
 };
 util.inherits(Client, process.EventEmitter);
 
@@ -45,12 +66,9 @@ Client.prototype.connect = function(callback) {
 	});
 
 	var lineReader = new tokread.TokenReader(self.conn, {delimiter: msg.Message.delim});
-	lineReader.on('onTokenRead', function(line) {
-		self.emit('_onResponseReceived', line);
+	lineReader.on('onTokenRead', function(token) {
+		self.emit('_onResponseReceived', token);
 	});
-
-	self.on('_onResponseReceived', self._onResponseReceived);
-	self.on('_onCommandRequest', self._onCommandRequest);
 
 	self.conn.connect(self.opts.port, self.opts.server);
 };
@@ -157,6 +175,32 @@ Client.prototype._getTarget = function(name) {
 	return target;
 };
 
+Client.prototype._log = function(response) {
+	var from = this.opts.server;
+	if (response.prefix != null) {
+		from = response.prefix.target;
+	}
+
+	if (response.type != null) {
+		from += '/' + response.type;
+	}
+
+	var readable = response.readable();
+	if (readable == '') {
+		readable = response.type;
+	}
+	this.opts.logStream.write(from + '> ' + readable + '\n');
+};
+
+Client.prototype._logServerResponse = function(message) {
+	this._log({
+		type: 'server', 
+		readable: function() {
+			return message;
+		}
+	});
+};
+
 Client.prototype.register = function() {
 	if (this.user.name != null) {
 		this.targets[this.user.name] = null;
@@ -175,7 +219,15 @@ Client.prototype.register = function() {
 	}
 	if (this.opts.autoAltNick) {
 		this.server.on('433', function() {
-			self.send(self.opts.getAltNickCommand());
+			if (self.user.name != null) {
+				self.targets[self.user.name] = null;
+			}
+			var cmd = self.opts.getAltNickCommand();
+			if (cmd.middle != null) {
+				self.user.name = cmd.middle;
+				self.targets[self.user.name] = self.user;
+			}
+			self.send(cmd);
 		});
 	}
 };
