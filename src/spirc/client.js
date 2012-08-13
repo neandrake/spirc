@@ -31,6 +31,10 @@ var Client = function(opts) {
 		self._logServerResponse('disconnected');
 	});
 
+	self.anyOnce('001', function() {
+		self.emit('onRegistered');
+	});
+
 	self.anyOnAny(function(response) {
 		self._log(response);
 	});
