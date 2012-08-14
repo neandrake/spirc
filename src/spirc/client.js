@@ -163,8 +163,9 @@ Client.prototype._onCommandRequest = function() {
 				command.sentTimestamp = null;
 				this._commandQueue.unshift(command);
 				this._opts._sendsPerSecCount = 0;
+				var self = this;
 				setTimeout(function() {
-					this.emit('_request');
+					self.emit('_request');
 				}, 1000 - timeDiff);
 				return;
 			}
