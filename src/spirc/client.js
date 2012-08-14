@@ -111,7 +111,12 @@ Client.prototype.getTarget = function(name, strict) {
 	return target;
 };
 
-Client.prototype._getTargetOrServer = function(name) {
+Client.prototype._getTargetOrServer = function(response) {
+	if (response.params == null) {
+		return this.server;
+	}
+
+	var name = response.params[0];
 	var target = this.getTarget(name, true);
 	if (target == null) {
 		target = this.server;
@@ -139,7 +144,7 @@ Client.prototype._onResponseReceived = function(line) {
 	response.recvTimestamp = new Date();
 	this._lastResponseRecv = response;
 
-	var target = this._getTargetOrServer(response.middle);
+	var target = this._getTargetOrServer(response);
 	var type = response.type;
 	if (type != null) {
 		target.emit(type, response);
@@ -186,7 +191,7 @@ Client.prototype._onCommandRequest = function() {
 Client.prototype.anyOn = function(event, callback) {
 	var self = this;
 	this._anyTarget.on(event, function(response) {
-		var context = self._getTargetOrServer(response.middle);
+		var context = self._getTargetOrServer(response);
 		callback.call(context, response);
 	});
 };
@@ -194,7 +199,7 @@ Client.prototype.anyOn = function(event, callback) {
 Client.prototype.anyOnce = function(event, callback) {
 	var self = this;
 	this._anyTarget.once(event, function(response) {
-		var context = self._getTargetOrServer(response.middle);
+		var context = self._getTargetOrServer(response);
 		callback.call(context, response);
 	});
 };
