@@ -1,5 +1,6 @@
 var util = require('util');
 var cmd = require('./commands.js');
+var tokread = require('./tokenreader.js');
 
 var Target = function(client, name) {
 	this.client = client;
@@ -15,7 +16,13 @@ Target.prototype.say = function(msg) {
 Target.prototype.onSaid = function(callback) {
 	this.on('PRIVMSG', callback);
 };
-
+Target.prototype.pipe = function(stream) {
+	var self = this;
+	var tr = new tokread.TokenReader(stream);
+	tr.on('token', function(line) {
+		self.say(line);
+	});
+};
 
 var User = function(client, name) {
 	Target.call(this, client, name);
