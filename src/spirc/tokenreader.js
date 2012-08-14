@@ -29,7 +29,7 @@ var TokenReader = function(stream, opts) {
 		}
 
 		for (var i=0, len=tokens.length; i<len; i++) {
-			self.emit('onTokenRead', tokens[i]);
+			self.emit('token', tokens[i]);
 		}
 	});
 };

@@ -1,34 +1,36 @@
 var cmd = require('./commands.js');
 
 var ClientOpts = function(opts) {
-	var self = this;
-	self.server = 'irc.freenode.net';
-	self.port = 6667;
-	self.nick = null;
-	self.pass = null;
-	self.altnicks = [];
+	this.server = 'irc.freenode.net';
+	this.port = 6667;
+	this.nick = null;
+	this.pass = null;
+	this.altnicks = [];
 
-	self.username = 'username';
-	self.hostname = '127.0.0.1';
-	self.servername = '127.0.0.1';
-	self.realname = 'realname';
+	this.username = 'username';
+	this.hostname = '127.0.0.1';
+	this.servername = '127.0.0.1';
+	this.realname = 'realname';
 
-	self.autoPong = true;
-	self.autoAltNick = true;
-	self.logStream = process.stdout;
+	this.autoPong = true;
+	this.autoAltNick = true;
+	this.logStream = null;
+	this.sendsPerSec = 5;
 
-	self._altnick_iterator = -1;
+	this._sendsPerSecCount = 0;
+	this._altNickIterator = -1;
 
 	if (typeof(opts) == 'object') {
-		var keys = Object.keys(self);
+		var keys = Object.keys(this);
 		for (var i=0; i<keys.length; i++) {
 			var k = keys[i];
 			if (opts[k] !== undefined) {
-				self[k] = opts[k];
+				this[k] = opts[k];
 			}
 		}
 	}
 };
+
 ClientOpts.prototype = {
 	constructor: ClientOpts,
 	getUserCommand: function() {
@@ -40,7 +42,7 @@ ClientOpts.prototype = {
 		);
 	},
 	getNickCommand: function() {
-		this._altnick_iterator = 0;
+		this._altNickIterator = 0;
 		return new cmd.Nick(this.nick);
 	},
 	getPassCommand: function() {
@@ -50,13 +52,13 @@ ClientOpts.prototype = {
 		return null;
 	},
 	getAltNickCommand: function() {
-		this._altnick_iterator++;
-		if (this.altnicks.length < this._altnick_iterator) {
+		this._altNickIterator++;
+		if (this.altnicks.length < this._altNickIterator) {
 			return null;
 		}
-		var altnick = this.altnicks[this._altnick_iterator];
+		var altnick = this.altnicks[this._altNickIterator];
 		if (altnick != null) {
-			this._altnick_iterator++;
+			this._altNickIterator++;
 			return new cmd.Nick(altnick);
 		}
 		return new cmd.Quit();
