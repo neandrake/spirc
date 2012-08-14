@@ -11,6 +11,7 @@ var ClientOpts = function(opts) {
 	this.hostname = '127.0.0.1';
 	this.servername = '127.0.0.1';
 	this.realname = 'realname';
+	this.secure = false;
 
 	this.autoPong = true;
 	this.autoAltNick = true;

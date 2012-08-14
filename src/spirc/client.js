@@ -1,4 +1,5 @@
 var net  = require('net');
+var tls = require('tls');
 var util = require('util');
 var tokread = require('./tokenreader.js');
 var cliopt = require('./clientopts.js');
@@ -48,12 +49,19 @@ Client.prototype.conn = null;
 
 Client.prototype.connect = function(callback) {
 	var self = this;
+	var socket = new net.Socket();
+	socket.setTimeout(0);
+	socket.setEncoding('utf-8');
 
-	self.conn = net.Socket();
-	self.conn.setTimeout(0);
-	self.conn.setEncoding('utf-8');
 
-	self.conn.on('connect', function() {
+	var connectFn = null;
+	if (self.opts.secure) {
+		connectFn = tls.connect;
+	} else {
+		connectFn = net.createConnection;
+	}
+
+	self.conn = connectFn(self.opts.port, self.opts.server, function() {
 		self.emit('connect');
 	});
 
@@ -69,12 +77,13 @@ Client.prototype.connect = function(callback) {
 		self.emit('error', errobj);
 	});
 
-	var lineReader = new tokread.TokenReader(self.conn, {delimiter: msg.Message.delim});
-	lineReader.on('token', function(token) {
-		self.emit('_receive', token);
+	var tr = new tokread.TokenReader(self.conn, {
+		delimiter: msg.Message.delim
 	});
 
-	self.conn.connect(self.opts.port, self.opts.server);
+	tr.on('token', function(token) {
+		self.emit('_receive', token);
+	});
 };
 
 Client.prototype.target = function(name) {
