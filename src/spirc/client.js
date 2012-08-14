@@ -83,36 +83,63 @@ Client.prototype.connect = function(callback) {
 	});
 };
 
-Client.prototype.target = function(name) {
-	return this._getTarget(name);
-};
-
-Client.prototype.hasTarget = function(name) {
-	return this._targets[name] != null;
-};
-
 Client.prototype.disconnect = function() {
 	this.server.quit();
 	this._conn.end();
 };
 
-Client.prototype.send = function(command) {
-	if (command != null) {
-		this._commandQueue.push(command);
+Client.prototype.getTarget = function(name, strict) {
+	if (name == null) {
+		return null;
 	}
-	this.emit('_request');
+
+	var target = this._targets[name];
+	if (target != null) {
+		return target;
+	}
+
+	if (strict) {
+		return null;
+	}
+
+	if (targets.Channel.isValidChannelName(name)) {
+		target = new targets.Channel(this, name);
+	} else {
+		target = new targets.User(this, name);
+	}
+	this._targets[name] = target;
+	return target;
 };
+
+Client.prototype._getTargetOrServer = function(name) {
+	var target = this.getTarget(name, true);
+	if (target == null) {
+		target = this.server;
+		this._targets[name] = target;
+	}
+	return target;
+};
+
+Client.prototype.hasTarget = function(name) {
+	return this.getTarget(name, true) != null;
+};
+
+Client.prototype.getServerAliases = function() {
+	var aliases = [];
+	for (var name in this._targets) {
+		if (this._targets[name] == this.server) {
+			aliases.push(name);
+		}
+	}
+	return aliases;
+}
 
 Client.prototype._onResponseReceived = function(line) {
 	var response = new rsp.Response(line);
 	response.recvTimestamp = new Date();
 	this._lastResponseRecv = response;
 
-	var target = this.server;
-	if (response.middle != null && this.hasTarget(response.middle)) {
-		target = this.target(response.middle);
-	}
-
+	var target = this._getTargetOrServer(response.middle);
 	var type = response.type;
 	if (type != null) {
 		target.emit(type, response);
@@ -120,36 +147,6 @@ Client.prototype._onResponseReceived = function(line) {
 	}
 	target.emit('_anyResponse', response);
 	this._anyTarget.emit('_anyResponse', response);
-};
-
-Client.prototype.anyOn = function(event, callback) {
-	var self = this;
-	this._anyTarget.on(event, function(response) {
-		var context = self.server;
-		if (self.hasTarget(response.middle)) {
-			context = self.target(response.middle);
-		}
-		callback.call(context, response);
-	});
-};
-
-Client.prototype.anyOnce = function(event, callback) {
-	var self = this;
-	this._anyTarget.once(event, function(response) {
-		var context = self.server;
-		if (self.hasTarget(response.middle)) {
-			context = self.target(response.middle);
-		}
-		callback.call(context, response);
-	});
-};
-
-Client.prototype.anyOnAny = function(callback) {
-	this.anyOn('_anyResponse', callback);
-};
-
-Client.prototype.anyOnceAny = function(callback) {
-	this.anyOnce('_anyResponse', callback);
 };
 
 Client.prototype._onCommandRequest = function() {
@@ -185,53 +182,35 @@ Client.prototype._onCommandRequest = function() {
 	}
 };
 
-Client.prototype._getTarget = function(name) {
-	if (name == null) {
-		return this.server;
-	}
-
-	var target = this._targets[name];
-	if (target != null) {
-		return target;
-	}
-
-	if (targets.Channel.isValidChannelName(name)) {
-		target = new targets.Channel(this, name);
-	} else {
-		target = new targets.User(this, name);
-	}
-	this._targets[name] = target;
-	return target;
-};
-
-Client.prototype._log = function(response) {
-	if (this._opts.logStream == null) {
-		return;
-	}
-
-	var from = this._opts.server;
-	if (response.prefix != null) {
-		from = response.prefix.target;
-	}
-
-	if (response.type != null) {
-		from += '/' + response.type;
-	}
-
-	var readable = response.readable();
-	if (readable == '') {
-		readable = response.type;
-	}
-	this._opts.logStream.write(from + '> ' + readable + '\n');
-};
-
-Client.prototype._logServerResponse = function(message) {
-	this._log({
-		type: 'server', 
-		readable: function() {
-			return message;
-		}
+Client.prototype.anyOn = function(event, callback) {
+	var self = this;
+	this._anyTarget.on(event, function(response) {
+		var context = self._getTargetOrServer(response.middle);
+		callback.call(context, response);
 	});
+};
+
+Client.prototype.anyOnce = function(event, callback) {
+	var self = this;
+	this._anyTarget.once(event, function(response) {
+		var context = self._getTargetOrServer(response.middle);
+		callback.call(context, response);
+	});
+};
+
+Client.prototype.anyOnAny = function(callback) {
+	this.anyOn('_anyResponse', callback);
+};
+
+Client.prototype.anyOnceAny = function(callback) {
+	this.anyOnce('_anyResponse', callback);
+};
+
+Client.prototype.send = function(command) {
+	if (command != null) {
+		this._commandQueue.push(command);
+	}
+	this.emit('_request');
 };
 
 Client.prototype.register = function() {
@@ -265,5 +244,36 @@ Client.prototype.register = function() {
 	}
 };
 
+
+
+Client.prototype._log = function(response) {
+	if (this._opts.logStream == null) {
+		return;
+	}
+
+	var from = this._opts.server;
+	if (response.prefix != null) {
+		from = response.prefix.target;
+	}
+
+	if (response.type != null) {
+		from += '/' + response.type;
+	}
+
+	var readable = response.readable();
+	if (readable == '') {
+		readable = response.type;
+	}
+	this._opts.logStream.write(from + '> ' + readable + '\n');
+};
+
+Client.prototype._logServerResponse = function(message) {
+	this._log({
+		type: 'server', 
+		readable: function() {
+			return message;
+		}
+	});
+};
 
 exports.Client = Client;
