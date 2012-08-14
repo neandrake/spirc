@@ -9,19 +9,23 @@ var targets = require('./targets.js');
 var cmd = require('./commands.js');
 
 var Client = function(opts) {
-	this.opts = new cliopt.ClientOpts(opts);
-	this.server = new targets.Host(this, opts.server);
-	this.user = new targets.User(this, opts.nick);
+	this._opts = new cliopt.ClientOpts(opts);
+	this._conn = null;
+	this._commandQueue = [];
+	this._lastCommandSent = null;
+	this._lastResponseRecv = null;
+	this._targets = {};
+
 	this._anyTarget = new targets.Target(this, null);
-	this.commandQueue = [];
-	this.lastCommandSent = null;
-	this.lastResponseRecv = null;
-	this.targets = {};
+	this.server = new targets.Host(this, this._opts.server);
+	this.user = new targets.User(this, this._opts.nick);
 
 	var self = this;
 	self.on('connect', function() {
 		self._logServerResponse('connected');
-		self.register();
+		if (self._opts.autoRegister) {
+			self.register();
+		}
 	});
 
 	self.on('error', function(err) {
@@ -45,39 +49,32 @@ var Client = function(opts) {
 };
 util.inherits(Client, process.EventEmitter);
 
-Client.prototype.conn = null;
-
 Client.prototype.connect = function(callback) {
 	var self = this;
-	var socket = new net.Socket();
-	socket.setTimeout(0);
-	socket.setEncoding('utf-8');
-
-
 	var connectFn = null;
-	if (self.opts.secure) {
+	if (self._opts.secure) {
 		connectFn = tls.connect;
 	} else {
 		connectFn = net.createConnection;
 	}
 
-	self.conn = connectFn(self.opts.port, self.opts.server, function() {
+	self._conn = connectFn(self._opts.port, self._opts.server, function() {
 		self.emit('connect');
 	});
 
-	self.conn.on('end', function() {
+	self._conn.on('end', function() {
 		self.emit('disconnect');
 	});
 
-	self.conn.on('close', function(hadError) {
+	self._conn.on('close', function(hadError) {
 		self.emit('close');
 	});
 
-	self.conn.on('error', function(errobj) {
+	self._conn.on('error', function(errobj) {
 		self.emit('error', errobj);
 	});
 
-	var tr = new tokread.TokenReader(self.conn, {
+	var tr = new tokread.TokenReader(self._conn, {
 		delimiter: msg.Message.delim
 	});
 
@@ -91,17 +88,17 @@ Client.prototype.target = function(name) {
 };
 
 Client.prototype.hasTarget = function(name) {
-	return this.targets[name] != null;
+	return this._targets[name] != null;
 };
 
 Client.prototype.disconnect = function() {
 	this.server.quit();
-	this.conn.end();
+	this._conn.end();
 };
 
 Client.prototype.send = function(command) {
 	if (command != null) {
-		this.commandQueue.push(command);
+		this._commandQueue.push(command);
 	}
 	this.emit('_request');
 };
@@ -109,7 +106,7 @@ Client.prototype.send = function(command) {
 Client.prototype._onResponseReceived = function(line) {
 	var response = new rsp.Response(line);
 	response.recvTimestamp = new Date();
-	this.lastResponseRecv = response;
+	this._lastResponseRecv = response;
 
 	var target = this.server;
 	if (response.middle != null && this.hasTarget(response.middle)) {
@@ -156,34 +153,34 @@ Client.prototype.anyOnceAny = function(callback) {
 };
 
 Client.prototype._onCommandRequest = function() {
-	if (this.commandQueue.length == 0) {
+	if (this._commandQueue.length == 0) {
 		return;
 	}
-	var command = this.commandQueue.shift();
+	var command = this._commandQueue.shift();
 	command.sentTimestamp = new Date();
 
-	if (this.opts.sendsPerSec > 0 && this.lastCommandSent != null) {
-		var timeDiff = command.sentTimestamp - this.lastCommandSent.sentTimestamp;
+	if (this._opts.sendsPerSec > 0 && this._lastCommandSent != null) {
+		var timeDiff = command.sentTimestamp - this._lastCommandSent.sentTimestamp;
 		if (timeDiff < 1000) {
-			if (this.opts._sendsPerSecCount >= this.opts.sendsPerSec) {
+			if (this._opts._sendsPerSecCount >= this._opts.sendsPerSec) {
 				command.sentTimestamp = null;
-				this.commandQueue.unshift(command);
-				this.opts._sendsPerSecCount = 0;
+				this._commandQueue.unshift(command);
+				this._opts._sendsPerSecCount = 0;
 				setTimeout(function() {
 					this.emit('_request');
 				}, 1000 - timeDiff);
 				return;
 			}
 		} else {
-			this.opts._sendsPerSecCount = 0;
+			this._opts._sendsPerSecCount = 0;
 		}
-		this.opts._sendsPerSecCount++;
+		this._opts._sendsPerSecCount++;
 	}
 
-	this.lastCommandSent = command;
-	this.conn.write(command.raw());
+	this._lastCommandSent = command;
+	this._conn.write(command.raw());
 
-	if (this.commandQueue.length > 0) {
+	if (this._commandQueue.length > 0) {
 		this.emit('_request');
 	}
 };
@@ -193,7 +190,7 @@ Client.prototype._getTarget = function(name) {
 		return this.server;
 	}
 
-	var target = this.targets[name];
+	var target = this._targets[name];
 	if (target != null) {
 		return target;
 	}
@@ -203,16 +200,16 @@ Client.prototype._getTarget = function(name) {
 	} else {
 		target = new targets.User(this, name);
 	}
-	this.targets[name] = target;
+	this._targets[name] = target;
 	return target;
 };
 
 Client.prototype._log = function(response) {
-	if (this.opts.logStream == null) {
+	if (this._opts.logStream == null) {
 		return;
 	}
 
-	var from = this.opts.server;
+	var from = this._opts.server;
 	if (response.prefix != null) {
 		from = response.prefix.target;
 	}
@@ -225,7 +222,7 @@ Client.prototype._log = function(response) {
 	if (readable == '') {
 		readable = response.type;
 	}
-	this.opts.logStream.write(from + '> ' + readable + '\n');
+	this._opts.logStream.write(from + '> ' + readable + '\n');
 };
 
 Client.prototype._logServerResponse = function(message) {
@@ -239,29 +236,29 @@ Client.prototype._logServerResponse = function(message) {
 
 Client.prototype.register = function() {
 	if (this.user.name != null) {
-		this.targets[this.user.name] = null;
+		this._targets[this.user.name] = null;
 	}
-	this.user.name = this.opts.nick;
-	this.targets[this.user.name] = this.user;
-	this.send(this.opts.getPassCommand());
-	this.send(this.opts.getNickCommand());
-	this.send(this.opts.getUserCommand());
+	this.user.name = this._opts.nick;
+	this._targets[this.user.name] = this.user;
+	this.send(this._opts.getPassCommand());
+	this.send(this._opts.getNickCommand());
+	this.send(this._opts.getUserCommand());
 
 	var self = this;
-	if (this.opts.autoPong) {
+	if (this._opts.autoPong) {
 		this.server.on('PING', function() {
 			self.send(new cmd.Pong(self.user.name));
 		});
 	}
-	if (this.opts.autoAltNick) {
+	if (this._opts.autoAltNick) {
 		this.server.on('433', function() {
 			if (self.user.name != null) {
-				self.targets[self.user.name] = null;
+				self._targets[self.user.name] = null;
 			}
-			var cmd = self.opts.getAltNickCommand();
+			var cmd = self._opts.getAltNickCommand();
 			if (cmd.middle != null) {
 				self.user.name = cmd.middle;
-				self.targets[self.user.name] = self.user;
+				self._targets[self.user.name] = self.user;
 			}
 			self.send(cmd);
 		});

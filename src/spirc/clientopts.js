@@ -15,8 +15,9 @@ var ClientOpts = function(opts) {
 
 	this.autoPong = true;
 	this.autoAltNick = true;
+	this.autoRegister = true;
 	this.logStream = null;
-	this.sendsPerSec = 5;
+	this.sendsPerSec = 3;
 
 	this._sendsPerSecCount = 0;
 	this._altNickIterator = -1;
