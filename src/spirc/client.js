@@ -18,29 +18,29 @@ var Client = function(opts) {
 	this.targets = {};
 
 	var self = this;
-	self.on('onConnected', function() {
+	self.on('connect', function() {
 		self._logServerResponse('connected');
 		self.register();
 	});
 
-	self.on('onError', function(err) {
+	self.on('error', function(err) {
 		self._logServerResponse('error: ' + err);
 	});
 
-	self.on('onDisconnect', function() {
+	self.on('disconnect', function() {
 		self._logServerResponse('disconnected');
 	});
 
 	self.anyOnce('001', function() {
-		self.emit('onRegistered');
+		self.emit('register');
 	});
 
 	self.anyOnAny(function(response) {
 		self._log(response);
 	});
 
-	self.on('_onResponseReceived', self._onResponseReceived);
-	self.on('_onCommandRequest', self._onCommandRequest);
+	self.on('_receive', self._onResponseReceived);
+	self.on('_request', self._onCommandRequest);
 };
 util.inherits(Client, process.EventEmitter);
 
@@ -54,24 +54,24 @@ Client.prototype.connect = function(callback) {
 	self.conn.setEncoding('utf-8');
 
 	self.conn.on('connect', function() {
-		self.emit('onConnected');
+		self.emit('connect');
 	});
 
 	self.conn.on('end', function() {
-		self.emit('onDisconnect');
+		self.emit('disconnect');
 	});
 
 	self.conn.on('close', function(hadError) {
-		self.emit('onClose');
+		self.emit('close');
 	});
 
 	self.conn.on('error', function(errobj) {
-		self.emit('onError', errobj);
+		self.emit('error', errobj);
 	});
 
 	var lineReader = new tokread.TokenReader(self.conn, {delimiter: msg.Message.delim});
-	lineReader.on('onTokenRead', function(token) {
-		self.emit('_onResponseReceived', token);
+	lineReader.on('token', function(token) {
+		self.emit('_receive', token);
 	});
 
 	self.conn.connect(self.opts.port, self.opts.server);
@@ -94,7 +94,7 @@ Client.prototype.send = function(command) {
 	if (command != null) {
 		this.commandQueue.push(command);
 	}
-	this.emit('_onCommandRequest');
+	this.emit('_request');
 };
 
 Client.prototype._onResponseReceived = function(line) {
@@ -152,11 +152,30 @@ Client.prototype._onCommandRequest = function() {
 	}
 	var command = this.commandQueue.shift();
 	command.sentTimestamp = new Date();
+
+	if (this.opts.sendsPerSec > 0 && this.lastCommandSent != null) {
+		var timeDiff = command.sentTimestamp - this.lastCommandSent.sentTimestamp;
+		if (timeDiff < 1000) {
+			if (this.opts._sendsPerSecCount >= this.opts.sendsPerSec) {
+				command.sentTimestamp = null;
+				this.commandQueue.unshift(command);
+				this.opts._sendsPerSecCount = 0;
+				setTimeout(function() {
+					this.emit('_request');
+				}, 1000 - timeDiff);
+				return;
+			}
+		} else {
+			this.opts._sendsPerSecCount = 0;
+		}
+		this.opts._sendsPerSecCount++;
+	}
+
 	this.lastCommandSent = command;
 	this.conn.write(command.raw());
 
 	if (this.commandQueue.length > 0) {
-		this.emit('_onCommandRequest');
+		this.emit('_request');
 	}
 };
 
@@ -180,6 +199,10 @@ Client.prototype._getTarget = function(name) {
 };
 
 Client.prototype._log = function(response) {
+	if (this.opts.logStream == null) {
+		return;
+	}
+
 	var from = this.opts.server;
 	if (response.prefix != null) {
 		from = response.prefix.target;

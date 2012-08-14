@@ -6,11 +6,10 @@ var Command = function(message) {
 };
 util.inherits(Command, msg.Message);
 Command.prototype.setCommand = function(command) {
-	if (command !== undefined && command !== null) {
-		this.command = command.toUpperCase();
-		return;
+	if (command == null) {
+		throw "Must specify a valid command";
 	}
-	throw "Must specify a valid command";
+	this.command = command.toUpperCase();
 };
 Command.prototype.raw = function() {
 	var val = '';
