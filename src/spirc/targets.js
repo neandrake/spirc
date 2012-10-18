@@ -45,7 +45,7 @@ var Host = function(client, name) {
 };
 util.inherits(Host, Target);
 Host.prototype.quit = function(msg) {
-	this.client.send(new cmd.Quit(this.name, msg));
+	this.client.send(new cmd.Quit(msg));
 };
 
 Channel.startTokens = ['#', '&', '!', '+'];
