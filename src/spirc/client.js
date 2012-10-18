@@ -83,9 +83,8 @@ Client.prototype.connect = function(callback) {
 	});
 };
 
-Client.prototype.disconnect = function() {
-	this.server.quit();
-	this._conn.end();
+Client.prototype.disconnect = function(msg) {
+	this.server.quit(msg);
 };
 
 Client.prototype.getTarget = function(name, strict) {
@@ -181,7 +180,10 @@ Client.prototype._onCommandRequest = function() {
 	}
 
 	this._lastCommandSent = command;
-	this._conn.write(command.raw());
+
+	var cmdraw = command.raw();
+	console.log('>> ' + cmdraw)
+	this._conn.write(cmdraw);
 
 	if (this._commandQueue.length > 0) {
 		this.emit('_request');
