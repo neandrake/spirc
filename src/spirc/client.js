@@ -189,7 +189,7 @@ Client.prototype._onCommandRequest = function() {
 
 	var command = this._commandQueue.shift();
 	var cmdraw = command.raw();
-	console.log('>> ' + cmdraw);
+	console.log('>> ' + cmdraw.trim());
 	this._conn.write(cmdraw);
 	command.sentTimestamp = new Date();
 	this._lastCommandSent = command;
