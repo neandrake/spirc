@@ -157,33 +157,42 @@ Client.prototype._onCommandRequest = function() {
 	if (this._commandQueue.length == 0) {
 		return;
 	}
-	var command = this._commandQueue.shift();
-	command.sentTimestamp = new Date();
-
-	if (this._opts.sendsPerSec > 0 && this._lastCommandSent != null) {
-		var timeDiff = command.sentTimestamp - this._lastCommandSent.sentTimestamp;
-		if (timeDiff < 1000) {
-			if (this._opts._sendsPerSecCount >= this._opts.sendsPerSec) {
-				command.sentTimestamp = null;
-				this._commandQueue.unshift(command);
-				this._opts._sendsPerSecCount = 0;
-				var self = this;
-				setTimeout(function() {
-					self.emit('_request');
-				}, 1000 - timeDiff);
-				return;
-			}
-		} else {
-			this._opts._sendsPerSecCount = 0;
+	
+	var sendsPerSec = this._opts.sendsPerSec;
+	
+	// Make sure we don't have some crazy value for sendsPerSec
+	if (sendsPerSec < 0) {
+		sendsPerSec = 0; // this disables rate-limiting (DON'T DO THIS, FOOL)
+	} else if (sendsPerSec > 100) {
+		sendsPerSec = 100;
+	}
+	
+	if (sendsPerSec > 0 && this._lastCommandSent != null) {
+		var now = new Date();
+		var lastCommand = this._lastCommandSent;
+		
+		// The minimum amount of time that the client will wait between sending commands
+		// to prevent it from being floodkicked.  For example, if you set sendsPerSecond
+		// to 4, the client will wait at least 250 milliseconds between each sent command
+		// to prevent it from sending more than 4 commands per second.
+		var minMillisBetweenCommands = (1000 + sendsPerSec - 1) / sendsPerSec;
+		var millisSinceLastCommand = now - lastCommand.sentTimestamp;
+		
+		if (millisSinceLastCommand < minMillisBetweenCommands) {
+			var self = this;
+			setTimeout(function() {
+				self.emit('_request');
+			}, minMillisBetweenCommands - millisSinceLastCommand + 1);
+			return;
 		}
-		this._opts._sendsPerSecCount++;
 	}
 
-	this._lastCommandSent = command;
-
+	var command = this._commandQueue.shift();
 	var cmdraw = command.raw();
-	console.log('>> ' + cmdraw)
+	console.log('>> ' + cmdraw);
 	this._conn.write(cmdraw);
+	command.sentTimestamp = new Date();
+	this._lastCommandSent = command;
 
 	if (this._commandQueue.length > 0) {
 		this.emit('_request');
