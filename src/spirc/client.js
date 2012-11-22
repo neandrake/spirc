@@ -40,10 +40,6 @@ var Client = function(opts) {
 		self.emit('register');
 	});
 
-	self.anyOnAny(function(response) {
-		self._log(response);
-	});
-
 	self.on('_receive', self._onResponseReceived);
 	self.on('_request', self._onCommandRequest);
 };
@@ -145,6 +141,9 @@ Client.prototype._onResponseReceived = function(line) {
 
 	var target = this._getTargetOrServer(response);
 	var type = response.type;
+	
+	this._log(response);
+	
 	if (type != null) {
 		target.emit(type, response);
 		this._anyTarget.emit(type, response);
