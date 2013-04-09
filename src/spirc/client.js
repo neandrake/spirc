@@ -40,10 +40,6 @@ var Client = function(opts) {
 		self.emit('register');
 	});
 
-	self.anyOnAny(function(response) {
-		self._log(response);
-	});
-
 	self.on('_receive', self._onResponseReceived);
 	self.on('_request', self._onCommandRequest);
 };
@@ -83,9 +79,8 @@ Client.prototype.connect = function(callback) {
 	});
 };
 
-Client.prototype.disconnect = function() {
-	this.server.quit();
-	this._conn.end();
+Client.prototype.disconnect = function(msg) {
+	this.server.quit(msg);
 };
 
 Client.prototype.getTarget = function(name, strict) {
@@ -111,7 +106,12 @@ Client.prototype.getTarget = function(name, strict) {
 	return target;
 };
 
-Client.prototype._getTargetOrServer = function(name) {
+Client.prototype._getTargetOrServer = function(response) {
+	if (response.params == null) {
+		return this.server;
+	}
+
+	var name = response.params[0] != null ? response.params[0].toLowerCase() : null;
 	var target = this.getTarget(name, true);
 	if (target == null) {
 		target = this.server;
@@ -139,8 +139,11 @@ Client.prototype._onResponseReceived = function(line) {
 	response.recvTimestamp = new Date();
 	this._lastResponseRecv = response;
 
-	var target = this._getTargetOrServer(response.middle);
+	var target = this._getTargetOrServer(response);
 	var type = response.type;
+	
+	this._log(response);
+	
 	if (type != null) {
 		target.emit(type, response);
 		this._anyTarget.emit(type, response);
@@ -153,29 +156,42 @@ Client.prototype._onCommandRequest = function() {
 	if (this._commandQueue.length == 0) {
 		return;
 	}
-	var command = this._commandQueue.shift();
-	command.sentTimestamp = new Date();
-
-	if (this._opts.sendsPerSec > 0 && this._lastCommandSent != null) {
-		var timeDiff = command.sentTimestamp - this._lastCommandSent.sentTimestamp;
-		if (timeDiff < 1000) {
-			if (this._opts._sendsPerSecCount >= this._opts.sendsPerSec) {
-				command.sentTimestamp = null;
-				this._commandQueue.unshift(command);
-				this._opts._sendsPerSecCount = 0;
-				setTimeout(function() {
-					this.emit('_request');
-				}, 1000 - timeDiff);
-				return;
-			}
-		} else {
-			this._opts._sendsPerSecCount = 0;
+	
+	var sendsPerSec = this._opts.sendsPerSec;
+	
+	// Make sure we don't have some crazy value for sendsPerSec
+	if (sendsPerSec < 0) {
+		sendsPerSec = 0; // this disables rate-limiting (DON'T DO THIS, FOOL)
+	} else if (sendsPerSec > 100) {
+		sendsPerSec = 100;
+	}
+	
+	if (sendsPerSec > 0 && this._lastCommandSent != null) {
+		var now = new Date();
+		var lastCommand = this._lastCommandSent;
+		
+		// The minimum amount of time that the client will wait between sending commands
+		// to prevent it from being floodkicked.  For example, if you set sendsPerSecond
+		// to 4, the client will wait at least 250 milliseconds between each sent command
+		// to prevent it from sending more than 4 commands per second.
+		var minMillisBetweenCommands = (1000 + sendsPerSec - 1) / sendsPerSec;
+		var millisSinceLastCommand = now - lastCommand.sentTimestamp;
+		
+		if (millisSinceLastCommand < minMillisBetweenCommands) {
+			var self = this;
+			setTimeout(function() {
+				self.emit('_request');
+			}, minMillisBetweenCommands - millisSinceLastCommand + 1);
+			return;
 		}
-		this._opts._sendsPerSecCount++;
 	}
 
+	var command = this._commandQueue.shift();
+	var cmdraw = command.raw();
+	console.log('>> ' + cmdraw.trim());
+	this._conn.write(cmdraw);
+	command.sentTimestamp = new Date();
 	this._lastCommandSent = command;
-	this._conn.write(command.raw());
 
 	if (this._commandQueue.length > 0) {
 		this.emit('_request');
@@ -185,7 +201,7 @@ Client.prototype._onCommandRequest = function() {
 Client.prototype.anyOn = function(event, callback) {
 	var self = this;
 	this._anyTarget.on(event, function(response) {
-		var context = self._getTargetOrServer(response.middle);
+		var context = self._getTargetOrServer(response);
 		callback.call(context, response);
 	});
 };
@@ -193,7 +209,7 @@ Client.prototype.anyOn = function(event, callback) {
 Client.prototype.anyOnce = function(event, callback) {
 	var self = this;
 	this._anyTarget.once(event, function(response) {
-		var context = self._getTargetOrServer(response.middle);
+		var context = self._getTargetOrServer(response);
 		callback.call(context, response);
 	});
 };
