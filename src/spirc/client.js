@@ -111,7 +111,7 @@ Client.prototype._getTargetOrServer = function(response) {
 		return this.server;
 	}
 
-	var name = response.params[0];
+	var name = response.params[0] != null ? response.params[0].toLowerCase() : null;
 	var target = this.getTarget(name, true);
 	if (target == null) {
 		target = this.server;
