@@ -13,7 +13,7 @@ IRC Library
 * Messages received are _Reponse_ objects.
 * Messages sent are _Command_ objects.
 * Messages are emitted from _Targets_, which can either be _Hosts_, _Channels_, or _Users_.
-** Event names are direct from the IRC specification, and can either be simplified string names such as 'PRIVMSG' or numbered codes.
+* Event names are direct from the IRC specification, and can either be simplified string names such as 'PRIVMSG' or numbered codes such as '001' or '433'.
 
 ####Examples
 Simple example of a bot that connects to a server, joins a channel, then echoes all messages received from the channel or PM back to the channel.
