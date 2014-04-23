@@ -1,12 +1,12 @@
 {
 	"name": "spirc",
 	"version": "0.1.0",
-	"description": "IRC Library for Node.js",
+	"description": "IRC Library",
 	"keywords": [
 		"irc"
 	],
 	"author": {
-		"name": "neandrake",
+		"name": "Christopher Speck",
 		"email": "die.drachen@gmail.com",
 	},
 	"bugs": {
