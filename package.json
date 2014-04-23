@@ -1,0 +1,27 @@
+{
+	"name": "spirc",
+	"version": "0.1.0",
+	"description": "IRC Library for Node.js",
+	"keywords": [
+		"irc"
+	],
+	"author": {
+		"name": "neandrake",
+		"email": "die.drachen@gmail.com",
+	},
+	"bugs": {
+		"mail": "die.drachen@gmail.com",
+		"url": "https://github.com/neandrake/spirc/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/neandrake/spirc.git"
+	},
+	"main": "lib/main.js",
+	"licenses": [
+		{
+			"type": "BSD",
+			"url": "https://github.com/neandrake/spirc/blob/master/LICENSE"
+		}
+	]
+}
