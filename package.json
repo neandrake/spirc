@@ -15,13 +15,17 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/neandrake/spirc.git"
+		"url": "http://github.com/neandrake/spirc.git"
 	},
 	"main": "lib/main.js",
 	"licenses": [
 		{
-			"type": "BSD",
+			"type": "BSD-3-Clause",
 			"url": "https://github.com/neandrake/spirc/blob/master/LICENSE"
 		}
-	]
+	],
+	"directories": {
+		"lib": "lib/",
+		"doc": "doc/"
+	}
 }
