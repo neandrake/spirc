@@ -33,22 +33,30 @@ module.exports = (function client_export() {
 
 		var self = this;
 		self.on('connect', function() {
-			self._logServerResponse('connected');
+			self._logMessage(self._opts.log.info, 'connected');
 			if (self._opts.autoRegister) {
 				self.register();
 			}
 		});
 
 		self.on('error', function(err) {
-			self._logServerResponse('error: ' + err);
+			self._logMessage(this._opts.log.error, err);
 		});
 
 		self.on('disconnect', function() {
-			self._logServerResponse('disconnected');
+			self._logMessage(this._opts.log.info, 'disconnected');
 		});
 
 		self.anyOnce('001', function() {
 			self.emit('register');
+		});
+
+		self.anyOnAny(function(response) {
+			var log = self._opts.log.info;
+			if (response.type == 'ERROR') {
+				log = self._opts.log.error;
+			}
+			self._logResponse(log, response);
 		});
 
 		self.on('_receive', self._onResponseReceived);
@@ -73,12 +81,12 @@ module.exports = (function client_export() {
 			self.emit('disconnect');
 		});
 
-		self._conn.on('close', function(hadError) {
+		self._conn.on('close', function() {
 			self.emit('close');
 		});
 
-		self._conn.on('error', function(errobj) {
-			self.emit('error', errobj);
+		self._conn.on('error', function(err) {
+			self.emit('error', err);
 		});
 
 		var tr = new TokenReader(self._conn, { delimiter: MessageDelim });
@@ -149,8 +157,6 @@ module.exports = (function client_export() {
 
 		var target = this._getTargetOrServer(response);
 		var type = response.type;
-		
-		this._logResponse(response);
 		
 		if (type != null) {
 			target.emit(type, response);
@@ -271,11 +277,7 @@ module.exports = (function client_export() {
 		this._opts.log.info('-> ' + this.user.name + '\t' + command.raw().trim());
 	};
 
-	Client.prototype._logResponse = function(response) {
-		if (this._opts.log == null) {
-			return;
-		}
-
+	Client.prototype._logResponse = function(log, response) {
 		var from = this._opts.server;
 		if (response.prefix != null) {
 			from = response.prefix.target;
@@ -289,15 +291,11 @@ module.exports = (function client_export() {
 		if (readable == '') {
 			readable = response.type;
 		}
-		this._opts.log.info('<- ' + from + '\t' + readable );
+		log.call(this._opts.log, '<- ' + from + '\t' + readable);
 	};
 
-	Client.prototype._logServerResponse = function(message) {
-		this._logResponse({
-			readable: function() {
-				return message;
-			}
-		});
+	Client.prototype._logMessage = function(log, message) {
+		log.call(this._opts.log, '<- ' + message);
 	};
 
 	return {
