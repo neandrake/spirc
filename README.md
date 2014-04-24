@@ -21,15 +21,14 @@ Simple example of a bot that connects to a server, joins a channel, then echoes 
 var Client = require('spirc').Client;
 var client = new Client({
     nick: 'spircbot',
-    altnicks: ['spircbot_'],
     server: 'irc.freenode.net',
-    logStream: process.stdout
 });
 
 var chan = client.getTarget('#spirc');
 var user = client.user;
 
-// this method will be invoked with a Response object when PRIVMSG events are emitted
+// this method is added as a listener to targets,
+// and will be invoked with a Response when PRIVMSG events are emitted
 var respond = function(response) {
     // the sender name and message are located in the response object, which
     // may differ depending on the response type, since it's PM, these are always the case
@@ -37,19 +36,25 @@ var respond = function(response) {
     var sayer = client.getTarget(response.prefix.target);
     var message = response.trailing;
 
+    // echo back to the channel
     chan.say('I just received a message from: ' + sayer.name);
 };
 
+// graceful shutdown on ctrl+c
 process.on('SIGINT', function() {
     client.disconnect('time to go');
 });
 
+// after conecting + registering user with server, join a channel
 client.on('register', function() {
     chan.join();
 });
 
+// register the respond callback
 user.onSaid(respond);
 chan.onSaid(respond);
+
+// start connection to server
 client.connect();
 ```
 
@@ -75,9 +80,9 @@ _Client_ constructor parses the object parameter as a _ClientOpts_, and can spec
 	// some additional options
 	"autoPong": true,			// most servers will kick if PINGs are not replied to
 	"autoAltNick": true,		// automatically loop through registering the nicks under the 'altnicks' option
-	"autoRegister": true,		// auto-register the client after connecting
-	"logStream": null,			// the stream for verbose logging
+	"autoRegister": true,		// auto-register the user after client connects to server
 	"sendsPerSec": 4			// throttling commands sent per sec
+	"logStream": null,			// the stream for logging
 }
 ```
 
@@ -112,9 +117,9 @@ The client's socket reading, as well as the target's _pipe_ method use _TokenRea
 
 ###Roadmap
 April 22, 2014
-- More IRC Support
-- Consistent API
-- Simplified API to abstract IRC details
-- Documentation/Comments
+- Promises
+- Additional IRC Support
+- Consistent and Simplified API
+- JSDoc Documentation/Comments
 - CTCP Features
 - IRC Server API
