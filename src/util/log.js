@@ -4,7 +4,9 @@ module.exports = (function log_exports() {
 	};
 
 	Log.prototype.write = function(prefix, message) {
-		this.stream.write(prefix + ':\t' + message + '\n');
+		if (this.stream != null) {
+			this.stream.write(prefix + ':\t' + message + '\n');
+		}
 	};
 
 	Log.prototype.info = function() {

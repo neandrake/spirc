@@ -267,7 +267,6 @@ module.exports = (function client_export() {
 		}
 	};
 
-
 	Client.prototype._logCommand = function(command) {
 		this._opts.log.info('-> ' + this.user.name + '\t' + command.raw().trim());
 	};

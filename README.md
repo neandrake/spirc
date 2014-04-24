@@ -78,11 +78,11 @@ _Client_ constructor parses the object parameter as a _ClientOpts_, and can spec
 	"secure": false,
 
 	// some additional options
-	"autoPong": true,			// most servers will kick if PINGs are not replied to
-	"autoAltNick": true,		// automatically loop through registering the nicks under the 'altnicks' option
-	"autoRegister": true,		// auto-register the user after client connects to server
-	"sendsPerSec": 4			// throttling commands sent per sec
-	"logStream": null,			// the stream for logging
+	"autoPong": true,				// most servers will kick if PINGs are not replied to
+	"autoAltNick": true,			// automatically loop through registering the nicks under the 'altnicks' option
+	"autoRegister": true,			// auto-register the user after client connects to server
+	"sendsPerSec": 4				// throttling commands sent per sec
+	"log": new Log(process.stdout),	// log for output
 }
 ```
 
