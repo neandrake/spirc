@@ -150,7 +150,7 @@ module.exports = (function client_export() {
 		var target = this._getTargetOrServer(response);
 		var type = response.type;
 		
-		this._log(response);
+		this._logResponse(response);
 		
 		if (type != null) {
 			target.emit(type, response);
@@ -195,9 +195,8 @@ module.exports = (function client_export() {
 		}
 
 		var command = this._commandQueue.shift();
-		var cmdraw = command.raw();
-		console.log('>> ' + cmdraw.trim());
-		this._conn.write(cmdraw);
+		this._logCommand(command);
+		this._conn.write(command.raw());
 		command.sentTimestamp = new Date();
 		this._lastCommandSent = command;
 
@@ -269,9 +268,12 @@ module.exports = (function client_export() {
 	};
 
 
+	Client.prototype._logCommand = function(command) {
+		this._opts.log.info('-> ' + this.user.name + '\t' + command.raw().trim());
+	};
 
-	Client.prototype._log = function(response) {
-		if (this._opts.logStream == null) {
+	Client.prototype._logResponse = function(response) {
+		if (this._opts.log == null) {
 			return;
 		}
 
@@ -288,12 +290,11 @@ module.exports = (function client_export() {
 		if (readable == '') {
 			readable = response.type;
 		}
-		this._opts.logStream.write(from + '> ' + readable + '\n');
+		this._opts.log.info('<- ' + from + '\t' + readable );
 	};
 
 	Client.prototype._logServerResponse = function(message) {
-		this._log({
-			type: 'server', 
+		this._logResponse({
 			readable: function() {
 				return message;
 			}

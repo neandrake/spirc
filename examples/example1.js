@@ -4,8 +4,7 @@ var Client = require('../lib/main.js').Client;
 var client = new Client({
     nick: 'spircbot',
     altnicks: ['spircbot_'],
-    server: 'irc.freenode.net',
-    logStream: process.stdout
+    server: 'irc.freenode.net'
 });
 
 var chan = client.getTarget('#spirc');

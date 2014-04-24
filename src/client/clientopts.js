@@ -1,3 +1,4 @@
+var Log = require('../util/log.js').Log;
 var cmd = require('../core/commands.js'),
 	Nick = cmd.Nick,
 	Pass = cmd.Pass,
@@ -22,7 +23,7 @@ module.exports = (function clientopts_export() {
 		this.autoAltNick = true;
 		this.autoRegister = true;
 		this.sendsPerSec = 4;
-		this.logStream = process.stdout;
+		this.log = new Log(process.stdout);
 
 		this._altNickIterator = -1;
 

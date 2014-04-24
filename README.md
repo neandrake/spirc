@@ -21,7 +21,7 @@ Simple example of a bot that connects to a server, joins a channel, then echoes 
 var Client = require('spirc').Client;
 var client = new Client({
     nick: 'spircbot',
-    server: 'irc.freenode.net',
+    server: 'irc.freenode.net'
 });
 
 var chan = client.getTarget('#spirc');
