@@ -117,7 +117,7 @@ The client's socket reading, as well as the target's _pipe_ method use _TokenRea
 
 ###Roadmap
 April 22, 2014
-- Promise-Centric
+- Promises
 - Additional IRC Support
 - Consistent and Simplified API
 - JSDoc Documentation/Comments
