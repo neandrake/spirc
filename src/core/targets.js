@@ -2,11 +2,11 @@ var inherits = require('util').inherits;
 
 var TokenReader = require('../util/tokread.js').TokenReader;
 
-var cmd = require('./commands.js'),
-	Join = cmd.Join,
-	Part = cmd.Part,
-	PrivMsg = cmd.PrivMsg,
-	Quit = cmd.Quit;
+var req = require('./requests.js'),
+	Join = req.Join,
+	Part = req.Part,
+	PrivMsg = req.PrivMsg,
+	Quit = req.Quit;
 
 module.exports = (function targets_export() {
 	var Target = function(client, name) {
@@ -79,7 +79,7 @@ module.exports = (function targets_export() {
 		}
 
 		for (p=0, plen=Channel.illegalTokens.length; p<plen; p++) {
-			if (name.indexOf(Channel.illegalTokens[p]) != -1) {
+			if (name.indexOf(Channel.illegalTokens[p]) > -1) {
 				return false;
 			}
 		}

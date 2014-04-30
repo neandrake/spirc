@@ -6,7 +6,7 @@ var TokenReader = require('../util/tokread.js').TokenReader;
 var ClientOpts = require('./clientopts.js').ClientOpts;
 
 var msg = require('../core/message.js'),
-	MessageDelim = msg.MessageDelim,
+	MessageDelim = msg.Message.delim,
 	Response = msg.Response;
 
 var targets = require('../core/targets.js'),
@@ -15,8 +15,8 @@ var targets = require('../core/targets.js'),
 	Target = targets.Target,
 	User = targets.User;
 
-var cmd = require('../core/commands.js'),
-	Pong = cmd.Pong;
+var req = require('../core/requests.js'),
+	Pong = req.Pong;
 
 module.exports = (function client_export() {
 	var Client = function(opts) {
@@ -53,7 +53,7 @@ module.exports = (function client_export() {
 
 		self.anyOnAny(function(response) {
 			var log = self._opts.log.info;
-			if (response.type == 'ERROR') {
+			if (response.command == 'ERROR') {
 				log = self._opts.log.error;
 			}
 			self._logResponse(log, response);
@@ -156,11 +156,10 @@ module.exports = (function client_export() {
 		this._lastResponseRecv = response;
 
 		var target = this._getTargetOrServer(response);
-		var type = response.type;
-		
-		if (type != null) {
-			target.emit(type, response);
-			this._anyTarget.emit(type, response);
+		var command = response.command;
+		if (command != null) {
+			target.emit(command, response);
+			this._anyTarget.emit(command, response);
 		}
 		target.emit('_anyResponse', response);
 		this._anyTarget.emit('_anyResponse', response);
@@ -202,7 +201,7 @@ module.exports = (function client_export() {
 
 		var command = this._commandQueue.shift();
 		this._logCommand(command);
-		this._conn.write(command.raw());
+		this._conn.write(command.rawline());
 		command.sentTimestamp = new Date();
 		this._lastCommandSent = command;
 
@@ -274,7 +273,7 @@ module.exports = (function client_export() {
 	};
 
 	Client.prototype._logCommand = function(command) {
-		this._opts.log.info('-> ' + this.user.name + '\t' + command.raw().trim());
+		this._opts.log.info('-> ' + this.user.name + '\t' + command.rawline().trim());
 	};
 
 	Client.prototype._logResponse = function(log, response) {
@@ -283,13 +282,20 @@ module.exports = (function client_export() {
 			from = response.prefix.target;
 		}
 
-		if (response.type != null) {
-			from += '/' + response.type;
+		if (response.command != null) {
+			from += '/' + response.command;
 		}
 
-		var readable = response.readable();
+		var readable = '';
+		if (response.middle != null) {
+			readable += response.middle.join(' ');
+		}
+		if (response.trailing != null) {
+			readable += ' ' + response.trailing;
+		}
+
 		if (readable == '') {
-			readable = response.type;
+			readable = response.command;
 		}
 		log.call(this._opts.log, '<- ' + from + '\t' + readable);
 	};

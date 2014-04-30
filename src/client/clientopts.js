@@ -1,9 +1,9 @@
 var Log = require('../util/log.js').Log;
-var cmd = require('../core/commands.js'),
-	Nick = cmd.Nick,
-	Pass = cmd.Pass,
-	Quit = cmd.Quit,
-	User = cmd.User;
+var req = require('../core/requests.js'),
+	Nick = req.Nick,
+	Pass = req.Pass,
+	Quit = req.Quit,
+	User = req.User;
 
 module.exports = (function clientopts_export() {
 	var ClientOpts = function(opts) {
