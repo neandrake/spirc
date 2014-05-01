@@ -22,17 +22,17 @@ module.exports = (function client_export() {
 	var Client = function(opts) {
 		this._opts = new ClientOpts(opts);
 		this._conn = null;
-		this._commandQueue = [];
-		this._lastCommandSent = null;
-		this._lastResponseRecv = null;
 		this._targets = {};
+		this._outboundQueue = [];
+		this._lastOutbound = null;
+		this._lastInbound = null;
 
 		this._anyTarget = new Target(this, null);
 		this.server = new Host(this, this._opts.server);
 		this.user = new User(this, this._opts.nick);
 
 		var self = this;
-		self.on('connect', function() {
+		self.on('connected', function() {
 			self._logMessage(self._opts.log.info, 'connected');
 			if (self._opts.autoRegister) {
 				self.register();
@@ -43,24 +43,25 @@ module.exports = (function client_export() {
 			self._logMessage(this._opts.log.error, err);
 		});
 
-		self.on('disconnect', function() {
+		self.on('disconnected', function() {
 			self._logMessage(this._opts.log.info, 'disconnected');
 		});
 
-		self.anyOnce('001', function() {
-			self.emit('register');
+		self.anyOnce(':NOTICE', function(inbound) {
+			self._getTargetFromInbound(inbound);
+ 		});
+
+		self.anyOnce(':001', function(inbound) {
+			self.emit('registered', inbound);
 		});
 
-		self.anyOnAny(function(response) {
+		self.anyOnAny(function(inbound) {
 			var log = self._opts.log.info;
-			if (response.command == 'ERROR') {
+			if (inbound.command.toUpperCase() == 'ERROR') {
 				log = self._opts.log.error;
 			}
-			self._logResponse(log, response);
+			self._logInbound(log, inbound);
 		});
-
-		self.on('_receive', self._onResponseReceived);
-		self.on('_request', self._onCommandRequest);
 	};
 	inherits(Client, process.EventEmitter);
 
@@ -74,15 +75,15 @@ module.exports = (function client_export() {
 		}
 
 		self._conn = connectFn(self._opts.port, self._opts.server, function() {
-			self.emit('connect');
+			self.emit('connected');
 		});
 
 		self._conn.on('end', function() {
-			self.emit('disconnect');
+			self.emit('disconnected');
 		});
 
 		self._conn.on('close', function() {
-			self.emit('close');
+			self.emit('closed');
 		});
 
 		self._conn.on('error', function(err) {
@@ -91,157 +92,20 @@ module.exports = (function client_export() {
 
 		var tr = new TokenReader(self._conn, { delimiter: MessageDelim });
 		tr.on('token', function(token) {
-			self.emit('_receive', token);
+			self._onInbound(token)
 		});
 	};
 
 	Client.prototype.disconnect = function(msg) {
+		for (var name in this._targets) {
+			if (this._targets[name].part) {
+				this._targets[name].part(msg);
+			}
+		}
 		this.server.quit(msg);
 	};
 
-	Client.prototype.getTarget = function(name, strict) {
-		if (name == null) {
-			return null;
-		}
-
-		var target = this._targets[name];
-		if (target != null) {
-			return target;
-		}
-
-		if (strict) {
-			return null;
-		}
-
-		if (Channel.isValidChannelName(name)) {
-			target = new Channel(this, name);
-		} else {
-			target = new User(this, name);
-		}
-		this._targets[name] = target;
-		return target;
-	};
-
-	Client.prototype._getTargetOrServer = function(response) {
-		if (response.params == null) {
-			return this.server;
-		}
-
-		var name = response.params[0] != null ? response.params[0].toLowerCase() : null;
-		var target = this.getTarget(name, true);
-		if (target == null) {
-			target = this.server;
-			this._targets[name] = target;
-		}
-		return target;
-	};
-
-	Client.prototype.hasTarget = function(name) {
-		return this.getTarget(name, true) != null;
-	};
-
-	Client.prototype.getServerAliases = function() {
-		var aliases = [];
-		for (var name in this._targets) {
-			if (this._targets[name] == this.server) {
-				aliases.push(name);
-			}
-		}
-		return aliases;
-	}
-
-	Client.prototype._onResponseReceived = function(line) {
-		var response = new Inbound(line);
-		response.recvTimestamp = new Date();
-		this._lastResponseRecv = response;
-
-		var target = this._getTargetOrServer(response);
-		var command = response.command;
-		if (command != null) {
-			target.emit(command, response);
-			this._anyTarget.emit(command, response);
-		}
-		target.emit('_anyResponse', response);
-		this._anyTarget.emit('_anyResponse', response);
-	};
-
-	Client.prototype._onCommandRequest = function() {
-		if (this._commandQueue.length == 0) {
-			return;
-		}
-		
-		var sendsPerSec = this._opts.sendsPerSec;
-		
-		// Make sure we don't have some crazy value for sendsPerSec
-		if (sendsPerSec < 0) {
-			sendsPerSec = 0; // this disables rate-limiting (DON'T DO THIS, FOOL)
-		} else if (sendsPerSec > 100) {
-			sendsPerSec = 100;
-		}
-		
-		if (sendsPerSec > 0 && this._lastCommandSent != null) {
-			var now = new Date();
-			var lastCommand = this._lastCommandSent;
-			
-			// The minimum amount of time that the client will wait between sending commands
-			// to prevent it from being floodkicked.  For example, if you set sendsPerSecond
-			// to 4, the client will wait at least 250 milliseconds between each sent command
-			// to prevent it from sending more than 4 commands per second.
-			var minMillisBetweenCommands = (1000 + sendsPerSec - 1) / sendsPerSec;
-			var millisSinceLastCommand = now - lastCommand.sentTimestamp;
-			
-			if (millisSinceLastCommand < minMillisBetweenCommands) {
-				var self = this;
-				setTimeout(function() {
-					self.emit('_request');
-				}, minMillisBetweenCommands - millisSinceLastCommand + 1);
-				return;
-			}
-		}
-
-		var command = this._commandQueue.shift();
-		this._logCommand(command);
-		this._conn.write(command.rawline());
-		command.sentTimestamp = new Date();
-		this._lastCommandSent = command;
-
-		if (this._commandQueue.length > 0) {
-			this.emit('_request');
-		}
-	};
-
-	Client.prototype.anyOn = function(event, callback) {
-		var self = this;
-		this._anyTarget.on(event, function(response) {
-			var context = self._getTargetOrServer(response);
-			callback.call(context, response);
-		});
-	};
-
-	Client.prototype.anyOnce = function(event, callback) {
-		var self = this;
-		this._anyTarget.once(event, function(response) {
-			var context = self._getTargetOrServer(response);
-			callback.call(context, response);
-		});
-	};
-
-	Client.prototype.anyOnAny = function(callback) {
-		this.anyOn('_anyResponse', callback);
-	};
-
-	Client.prototype.anyOnceAny = function(callback) {
-		this.anyOnce('_anyResponse', callback);
-	};
-
-	Client.prototype.send = function(command) {
-		if (command != null) {
-			this._commandQueue.push(command);
-		}
-		this.emit('_request');
-	};
-
-	Client.prototype.register = function() {
+	Client.prototype.register = function(inbound) {
 		if (this.user.name != null) {
 			this._targets[this.user.name] = null;
 		}
@@ -253,12 +117,12 @@ module.exports = (function client_export() {
 
 		var self = this;
 		if (this._opts.autoPong) {
-			this.server.on('PING', function() {
+			this.server.on(':PING', function() {
 				self.send(new Pong(self.user.name));
 			});
 		}
 		if (this._opts.autoAltNick) {
-			this.server.on('433', function() {
+			this.server.on(':433', function() {
 				if (self.user.name != null) {
 					self._targets[self.user.name] = null;
 				}
@@ -272,30 +136,155 @@ module.exports = (function client_export() {
 		}
 	};
 
+	Client.prototype._onInbound = function(line) {
+		if (line.toUpperCase().indexOf('ERROR') == 0) {
+			this.emit('error', line);
+			return;
+		}
+
+		var inbound = new Inbound(line);
+		inbound.recvTimestamp = new Date();
+		this._lastInbound = inbound;
+
+		var target = this._getTargetFromInbound(inbound);
+		var command = inbound.command;
+		if (command != null) {
+			command = ':' + command;
+			target.emit(command, inbound);
+			this._anyTarget.emit(command, inbound);
+		}
+		target.emit('_anyResponse', inbound);
+		this._anyTarget.emit('_anyResponse', inbound);
+	};
+
+	Client.prototype.send = function(command) {
+		if (command != null) {
+			this._outboundQueue.push(command);
+		}
+		this._onOutboundQueued();
+	};
+
+	Client.prototype._onOutboundQueued = function() {
+		if (this._outboundQueue.length == 0) {
+			return;
+		}
+		
+		var sendsPerSec = this._opts.sendsPerSec;
+		
+		// Make sure we don't have some crazy value for sendsPerSec
+		if (sendsPerSec < 0) {
+			sendsPerSec = 0; // this disables rate-limiting (DON'T DO THIS, FOOL)
+		} else if (sendsPerSec > 100) {
+			sendsPerSec = 100;
+		}
+		
+		if (sendsPerSec > 0 && this._lastOutbound != null) {
+			var now = new Date();
+			var lastCommand = this._lastOutbound;
+			
+			// The minimum amount of time that the client will wait between sending commands
+			// to prevent it from being floodkicked.  For example, if you set sendsPerSecond
+			// to 4, the client will wait at least 250 milliseconds between each sent command
+			// to prevent it from sending more than 4 commands per second.
+			var minMillisBetweenCommands = (1000 + sendsPerSec - 1) / sendsPerSec;
+			var millisSinceLastCommand = now - lastCommand.sentTimestamp;
+			
+			if (millisSinceLastCommand < minMillisBetweenCommands) {
+				var self = this;
+				setTimeout(function() {
+					self._onOutboundQueued();
+				}, minMillisBetweenCommands - millisSinceLastCommand + 1);
+				return;
+			}
+		}
+
+		var command = this._outboundQueue.shift();
+		this._logCommand(command);
+		this._conn.write(command.rawline());
+		command.sentTimestamp = new Date();
+		this._lastOutbound = command;
+		this.emit('_outbound', command);
+
+		if (this._outboundQueue.length > 0) {
+			this._onOutboundQueued();
+		}
+	};
+
+	Client.prototype.getTarget = function(name) {
+		name = name.toLowerCase();
+		var target = this._targets[name];
+		if (target != null) {
+			return target;
+		}
+
+		if (Channel.isValidChannelName(name)) {
+			target = new Channel(this, name);
+		} else {
+			target = new User(this, name);
+		}
+		this._targets[name] = target;
+		return target;
+	};
+
+	Client.prototype._getTargetFromInbound = function(inbound) {
+		var name = null;
+		if (inbound.params != null && inbound.params.length > 0) {
+			name = inbound.params[0];
+		}
+		if (name == null && inbound.prefix != null) {
+			name = inbound.prefix.target;
+		}
+		if (name == null) {
+			return this.server;
+		}
+
+		return this.getTarget(name);
+	};
+
+	Client.prototype.knowsTarget = function(name) {
+		return this._targets[name.toLowerCase()] != null;
+	};
+
+	Client.prototype.anyOnce = function(event, callback) {
+		var self = this;
+		this._anyTarget.once(event, function(inbound) {
+			var context = self._getTargetFromInbound(inbound);
+			callback.call(context, inbound);
+		});
+	};
+
+	Client.prototype.anyOnAny = function(callback) {
+		var self = this;
+		this._anyTarget.on('_anyResponse', function(inbound) {
+			var context = self._getTargetFromInbound(inbound);
+			callback.call(context, inbound);
+		});
+	};
+
 	Client.prototype._logCommand = function(command) {
 		this._opts.log.info('-> ' + this.user.name + '\t' + command.rawline().trim());
 	};
 
-	Client.prototype._logResponse = function(log, response) {
+	Client.prototype._logInbound = function(log, inbound) {
 		var from = this._opts.server;
-		if (response.prefix != null) {
-			from = response.prefix.target;
+		if (inbound.prefix != null) {
+			from = inbound.prefix.target;
 		}
 
-		if (response.command != null) {
-			from += '/' + response.command;
+		if (inbound.command != null) {
+			from += '/' + inbound.command;
 		}
 
 		var readable = '';
-		if (response.middle != null) {
-			readable += response.middle.join(' ');
+		if (inbound.middle != null) {
+			readable += inbound.middle.join(' ');
 		}
-		if (response.trailing != null) {
-			readable += ' ' + response.trailing;
+		if (inbound.trailing != null) {
+			readable += ' ' + inbound.trailing;
 		}
 
 		if (readable == '') {
-			readable = response.command;
+			readable = inbound.command;
 		}
 		log.call(this._opts.log, '<- ' + from + '\t' + readable);
 	};

@@ -29,7 +29,7 @@ process.on('SIGINT', function() {
 });
 
 // after conecting + registering user with server, join a channel
-client.on('register', function() {
+client.on('registered', function() {
     chan.join();
 });
 
