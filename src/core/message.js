@@ -180,26 +180,26 @@ module.exports = (function message_export() {
 		}
 	};
 
-	var Request = function() {
+	var Outbound = function() {
 		Message.apply(this, arguments);
 		this.sentTimestamp = -1;
 		this.responseCommands = [];
 	};
-	inherits(Request, Message);
+	inherits(Outbound, Message);
 
-	Request.prototype.setResponseCommands = function() {
+	Outbound.prototype.setResponseCommands = function() {
 		this.expectedResponses = Array.prototype.slice.call(arguments);
 	};
 
-	var Response = function() {
+	var Inbound = function() {
 		Message.apply(this, arguments);
 		this.recvTimestamp = -1;
 	};
-	inherits(Response, Message);
+	inherits(Inbound, Message);
 
 	return {
 		Message: Message,
-		Request: Request,
-		Response: Response
+		Inbound: Inbound,
+		Outbound: Outbound
 	};
 })();

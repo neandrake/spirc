@@ -7,7 +7,7 @@ var ClientOpts = require('./clientopts.js').ClientOpts;
 
 var msg = require('../core/message.js'),
 	MessageDelim = msg.Message.delim,
-	Response = msg.Response;
+	Inbound = msg.Inbound;
 
 var targets = require('../core/targets.js'),
 	Channel = targets.Channel,
@@ -151,7 +151,7 @@ module.exports = (function client_export() {
 	}
 
 	Client.prototype._onResponseReceived = function(line) {
-		var response = new Response(line);
+		var response = new Inbound(line);
 		response.recvTimestamp = new Date();
 		this._lastResponseRecv = response;
 

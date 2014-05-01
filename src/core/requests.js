@@ -1,168 +1,168 @@
 var inherits = require('util').inherits;
 
-var Request = require('./message.js').Request;
+var Outbound = require('./message.js').Outbound;
 
 module.exports = (function commands_export() {
 	var Away = function(message) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('AWAY');
 		this.setParams(message);
 	};
-	inherits(Away, Request);
+	inherits(Away, Outbound);
 
 	var GetMode = function(chan) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('MODE');
 		this.setParams(chan);
 	};
-	inherits(GetMode, Request);
+	inherits(GetMode, Outbound);
 
 	var Invite = function(nick, chan) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('INVITE');
 		this.setParams(nick, chan);
 	};
-	inherits(Invite, Request);
+	inherits(Invite, Outbound);
 
 	var IsOn = function(nick) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('ISON');
 		this.setParams(nick);
 	};
-	inherits(IsOn, Request);
+	inherits(IsOn, Outbound);
 
 	var Join = function(chan, key) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('JOIN');
 		this.setParams(chan, key);
 	};
-	inherits(Join, Request);
+	inherits(Join, Outbound);
 
 	var Kick = function(chan, nick, message) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('KICK');
 		this.setParams(chan, nick, message);
 	};
-	inherits(Kick, Request);
+	inherits(Kick, Outbound);
 
 	var List = function(chan) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('LIST');
 		this.setParams(chan);
 	};
-	inherits(List, Request);
+	inherits(List, Outbound);
 
 	var Names = function(chan) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('NAMES');
 		this.setParams(chan);
 	};
-	inherits(Names, Request);
+	inherits(Names, Outbound);
 
 	var Nick = function(nick) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('NICK');
 		this.setParams(nick);
 	};
-	inherits(Nick, Request);
+	inherits(Nick, Outbound);
 
 	var Notice = function(target, message) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('NOTICE');
 		this.setParams(target, message);
 	};
-	inherits(Notice, Request);
+	inherits(Notice, Outbound);
 
 	var Part = function(chan, message) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('PART');
 		this.setParams(chan, message);
 	};
-	inherits(Part, Request);
+	inherits(Part, Outbound);
 
 	var Pass = function(pass) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('PASS');
 		this.setParams(pass);
 	};
-	inherits(Pass, Request);
+	inherits(Pass, Outbound);
 
 	var Ping = function(ping) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('PING');
 		this.setParams(ping);
 	};
-	inherits(Ping, Request);
+	inherits(Ping, Outbound);
 
 	var Pong = function(pong) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('PONG');
 		this.setParams(pong);
 	};
-	inherits(Pong, Request);
+	inherits(Pong, Outbound);
 
 	var PrivMsg = function(target, message) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('PRIVMSG');
 		this.setParams(target, message);
 	};
-	inherits(PrivMsg, Request);
+	inherits(PrivMsg, Outbound);
 
 	var Quit = function(message) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('QUIT');
 		this.setParams(message);
 	};
-	inherits(Quit, Request);
+	inherits(Quit, Outbound);
 
 	var SetMode = function(target, mode) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('MODE');
 		this.setParams(target, mode);
 	};
-	inherits(SetMode, Request);
+	inherits(SetMode, Outbound);
 
 	var Topic = function(chan, topic) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('TOPIC');
 		this.setParams(chan, topic);
 	};
-	inherits(Topic, Request);
+	inherits(Topic, Outbound);
 
 	var User = function(username, hostname, servername, realname) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('USER');
 		this.setParams(username, hostname, servername, realname);
 	};
-	inherits(User, Request);
+	inherits(User, Outbound);
 
 	var Who = function(criteric) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('WHO');
 		this.setParams(criteric);
 	};
-	inherits(Who, Request);
+	inherits(Who, Outbound);
 
 	var Whois = function(nick) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('WHOIS');
 		this.setParams(nick);
 	};
-	inherits(Whois, Request);
+	inherits(Whois, Outbound);
 
 	var Whowas = function(nick) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('WHOWAS');
 		this.setParams(nick);
 	};
-	inherits(Whowas, Request);
+	inherits(Whowas, Outbound);
 
 	var UserHost = function(nicks) {
-		Request.call(this);
+		Outbound.call(this);
 		this.setCommand('USERHOST');
 		this.setParams(nicks);
 	};
-	inherits(UserHost, Request);
+	inherits(UserHost, Outbound);
 
 	return {
 		Away: Away,
