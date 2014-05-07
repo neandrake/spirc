@@ -12,7 +12,7 @@ module.exports = (function message_export() {
 	Prefix.prototype = {
 		constructor: Prefix,
 
-		rawline: function() {
+		rawline: function rawline() {
 			if (this._rawline != null) {
 				return this._rawline;
 			}
@@ -30,7 +30,7 @@ module.exports = (function message_export() {
 			return this._rawline;
 		},
 
-		parse: function(prefix) {
+		parse: function parse(prefix) {
 			if (prefix == null) {
 				return;
 			}
@@ -55,7 +55,7 @@ module.exports = (function message_export() {
 		}
 	};
 
-	var Message = function(message) {
+	var Message = function Message(message) {
 		this._rawline = null;
 		this.prefix = null;
 		this.command = null;
@@ -74,7 +74,7 @@ module.exports = (function message_export() {
 	Message.prototype = {
 		constructor: Message,
 
-		copy: function(msg) {
+		copy: function copy(msg) {
 			var keys = Object.keys(this);
 			for (var i=0; i<keys.length; i++) {
 				var k = keys[i];
@@ -84,7 +84,7 @@ module.exports = (function message_export() {
 			}
 		},
 
-		setPrefix: function(prefix) {
+		setPrefix: function setPrefix(prefix) {
 			if (prefix != null) {
 				this.prefix = new Prefix(prefix);
 			} else {
@@ -92,11 +92,11 @@ module.exports = (function message_export() {
 			}
 		},
 
-		setCommand: function(command) {
+		setCommand: function setCommand(command) {
 			this.command = command.toUpperCase();
 		},
 
-		setParams: function() {
+		setParams: function setParams() {
 			this.middle = [];
 			this.trailing = null;
 
@@ -116,7 +116,7 @@ module.exports = (function message_export() {
 			}
 		},
 
-		rawline: function() {
+		rawline: function rawline() {
 			if (this._rawline != null) {
 				return this._rawline;
 			}
@@ -137,7 +137,7 @@ module.exports = (function message_export() {
 			return this._rawline;
 		},
 
-		parse: function(message) {
+		parse: function parse(message) {
 			this._rawline = message;
 			var len = message.length;
 			var nextSpaceIndex = -1;
@@ -180,18 +180,14 @@ module.exports = (function message_export() {
 		}
 	};
 
-	var Outbound = function() {
+	var Outbound = function Outbound() {
 		Message.apply(this, arguments);
 		this.sentTimestamp = -1;
-		this.responseCommands = [];
 	};
 	inherits(Outbound, Message);
 
-	Outbound.prototype.setResponseCommands = function() {
-		this.expectedResponses = Array.prototype.slice.call(arguments);
-	};
 
-	var Inbound = function() {
+	var Inbound = function Inbound() {
 		Message.apply(this, arguments);
 		this.recvTimestamp = -1;
 	};

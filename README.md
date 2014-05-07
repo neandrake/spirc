@@ -10,10 +10,10 @@ IRC Library
 
 ####Overview
 * After connecting successfully to a server, a 'register' event is emitted on the client, which is the appropriate time to auto-join channels.
-* Messages received are _Reponse_ objects.
-* Messages sent are _Command_ objects.
+* Messages received are _Inbound_ objects.
+* Messages sent are _Outbound_ objects.
 * Messages are emitted from _Targets_, which can either be _Hosts_, _Channels_, or _Users_.
-* Event names are direct from the IRC specification, and can either be simplified string names such as 'PRIVMSG' or numbered codes such as '001' or '433'.
+* IRC Message events emitted from targets are directly named from IRC RFCs, but are prefixed with ':' character in order to differentiate from other events emitted from the target. Examples are 'PRIVMSG' or '433'.
 
 ####Examples
 Simple example of a bot that connects to a server, joins a channel, then echoes all messages received from the channel or PM back to the channel.
@@ -21,6 +21,7 @@ Simple example of a bot that connects to a server, joins a channel, then echoes 
 var Client = require('spirc').Client;
 var client = new Client({
     nick: 'spircbot',
+    altnicks: ['spircbot_'],
     server: 'irc.freenode.net'
 });
 
@@ -29,7 +30,7 @@ var user = client.user;
 
 // this method is added as a listener to targets,
 // and will be invoked with a Response when PRIVMSG events are emitted
-var respond = function(response) {
+function respond(response) {
     // the sender name and message are located in the response object, which
     // may differ depending on the response type, since it's PM, these are always the case
     // get a target object from client keyed on the sender's name
@@ -41,12 +42,12 @@ var respond = function(response) {
 };
 
 // graceful shutdown on ctrl+c
-process.on('SIGINT', function() {
+process.on('SIGINT', function onInterrupt() {
     client.disconnect('time to go');
 });
 
 // after conecting + registering user with server, join a channel
-client.on('register', function() {
+client.on('registered', function onClientRegistered() {
     chan.join();
 });
 
@@ -82,14 +83,14 @@ _Client_ constructor parses the object parameter as a _ClientOpts_, and can spec
 	"autoAltNick": true,			// automatically loop through registering the nicks under the 'altnicks' option
 	"autoRegister": true,			// auto-register the user after client connects to server
 	"sendsPerSec": 4				// throttling commands sent per sec
-	"log": new Log(process.stdout),	// log for output
+	"log": new Log(process.stdout),	// log for output, not sure if this will be kept
 }
 ```
 
 _Target_ defines several convenience methods
 - _say_ - sends a PRIVMSG command to the target.
-- _onSaid_ - register a listener for PRIVMSG responses.
-- _onAnyResponse_ - register a listener for all responses.
+- _onSaid_ - register a listener for PRIVMSG messages.
+- _onInbound_ - register a listener for all inbound messages.
 - _pipe_ - pipe data from a stream to the target via PRIVMSG commands.
 
 _Channel_ also contains these convenience methods
@@ -98,18 +99,18 @@ _Channel_ also contains these convenience methods
 
 _Host_ also contains these convenience methods
 - _quit_ - disconnect from the irc server
+- _onPing_ - convenience for registering a listener whena PING message is received
 
-The _Client_ object contains a method _send_ for sending a _Command_, which is used by all the convenience methods.
+The _Client_ object contains a method _send_ for sending an _Outbound_ request, which is used by all the convenience methods.
 ```javascript
-var cmd = require('commands');
-client.send(new cmd.Names('#channel'));
+var req = require('requests');
+client.send(new req.Names('#channel'));
 ```
 
-The _Client_ object also contains several convenience methods for registering listeners (these names are a bit trifling)
-- _anyOn_ - receives events of a type from any target
-- _anyOnce_ - receives events of a type from any target, fired only once
-- _anyOnAny_ - receives events of all types from all targets
-- _anyOnceAny_ - receives events of all types from all targets, fired only once
+The _Client_ object also provides methods for registering listeners for when any inbound event is received, regardless of target. These events are fired before the specified target has its events fired.
+- _onInboundEvent_ - receives inbounds for a specific event
+- _onceInboundEvent_ - receives inbounds for a specific event, but is only fired once
+
 
 
 The client's socket reading, as well as the target's _pipe_ method use _TokenReader_ object. This is a simple object that emits 'token' events with data based on a given delimiter. The default delimiter is the newline character.
@@ -117,9 +118,9 @@ The client's socket reading, as well as the target's _pipe_ method use _TokenRea
 
 ###Roadmap
 April 22, 2014
-- Promises
+- Promise-ish
 - Additional IRC Support
 - Consistent and Simplified API
 - JSDoc Documentation/Comments
-- CTCP Features
+- CTCP
 - IRC Server API

@@ -19,7 +19,7 @@ var req = require('../core/requests.js'),
 	Pong = req.Pong;
 
 module.exports = (function client_export() {
-	var Client = function(opts) {
+	var Client = function Client(opts) {
 		this._opts = new ClientOpts(opts);
 		this._conn = null;
 		this._targets = {};
@@ -32,32 +32,32 @@ module.exports = (function client_export() {
 		this.user = new User(this, this._opts.nick);
 
 		var self = this;
-		self.on('connected', function() {
+		self.on('connected', function _cb_onConnected() {
 			self._logMessage(self._opts.log.info, 'connected');
 			if (self._opts.autoRegister) {
 				self.register();
 			}
 		});
 
-		self.on('error', function(err) {
+		self.on('error', function _cb_onError(err) {
 			self._logMessage(this._opts.log.error, err);
 		});
 
-		self.on('disconnected', function() {
+		self.on('disconnected', function _cb_onDisconnected() {
 			self._logMessage(this._opts.log.info, 'disconnected');
 		});
 
-		self.onceInboundEvent(':NOTICE', function(inbound) {
+		self.onceInboundEvent(':NOTICE', function _cb_onceInboundNotice(inbound) {
 			self._getTargetFromInbound(inbound);
 		});
 
-		self.onInboundEvent(':001', function(inbound) {
+		self.onInboundEvent(':001', function _cb_on001Registered(inbound) {
 			self.emit('registered', inbound);
 		});
 	};
 	inherits(Client, process.EventEmitter);
 
-	Client.prototype.connect = function(callback) {
+	Client.prototype.connect = function connect(callback) {
 		var self = this;
 		var connectFn = null;
 		if (self._opts.secure) {
@@ -66,29 +66,29 @@ module.exports = (function client_export() {
 			connectFn = net.createConnection;
 		}
 
-		self._conn = connectFn(self._opts.port, self._opts.server, function() {
+		self._conn = connectFn(self._opts.port, self._opts.server, function _cb_onConnected() {
 			self.emit('connected');
 		});
 
-		self._conn.on('end', function() {
+		self._conn.on('end', function _cb_onEnd() {
 			self.emit('disconnected');
 		});
 
-		self._conn.on('close', function() {
+		self._conn.on('close', function _cb_onClose() {
 			self.emit('closed');
 		});
 
-		self._conn.on('error', function(err) {
+		self._conn.on('error', function _cb_onError(err) {
 			self.emit('error', err);
 		});
 
 		var tr = new TokenReader(self._conn, { delimiter: MessageDelim });
-		tr.on('token', function(token) {
+		tr.on('token', function _cb_onToken(token) {
 			self._onInbound(token)
 		});
 	};
 
-	Client.prototype.disconnect = function(msg) {
+	Client.prototype.disconnect = function disconnect(msg) {
 		for (var name in this._targets) {
 			if (this._targets[name].part) {
 				this._targets[name].part(msg);
@@ -97,7 +97,7 @@ module.exports = (function client_export() {
 		this.server.quit(msg);
 	};
 
-	Client.prototype.register = function(inbound) {
+	Client.prototype.register = function register(inbound) {
 		if (this.user.name != null) {
 			this._targets[this.user.name] = null;
 		}
@@ -109,12 +109,12 @@ module.exports = (function client_export() {
 
 		var self = this;
 		if (this._opts.autoPong) {
-			this.server.on(':PING', function() {
+			this.server.onPing(function _cb_onPing(inbound) {
 				self.send(new Pong(self.user.name));
 			});
 		}
 		if (this._opts.autoAltNick) {
-			this.server.on(':433', function() {
+			this.server.on(':433', function _cb_onNickAlreadyRegistered() {
 				if (self.user.name != null) {
 					self._targets[self.user.name] = null;
 				}
@@ -128,7 +128,7 @@ module.exports = (function client_export() {
 		}
 	};
 
-	Client.prototype._onInbound = function(line) {
+	Client.prototype._onInbound = function _onInbound(line) {
 		if (line.toUpperCase().indexOf('ERROR') == 0) {
 			this.emit('error', line);
 			return;
@@ -155,14 +155,14 @@ module.exports = (function client_export() {
 		target.emit('inbound', inbound);
 	};
 
-	Client.prototype.send = function(command) {
+	Client.prototype.send = function send(command) {
 		if (command != null) {
 			this._outboundQueue.push(command);
 		}
 		this._onOutboundQueued();
 	};
 
-	Client.prototype._onOutboundQueued = function() {
+	Client.prototype._onOutboundQueued = function _onOutboundQueued() {
 		if (this._outboundQueue.length == 0) {
 			return;
 		}
@@ -189,7 +189,7 @@ module.exports = (function client_export() {
 			
 			if (millisSinceLastCommand < minMillisBetweenCommands) {
 				var self = this;
-				setTimeout(function() {
+				setTimeout(function _cb_throttleTimeout() {
 					self._onOutboundQueued();
 				}, minMillisBetweenCommands - millisSinceLastCommand + 1);
 				return;
@@ -208,7 +208,7 @@ module.exports = (function client_export() {
 		}
 	};
 
-	Client.prototype.getTarget = function(name) {
+	Client.prototype.getTarget = function getTarget(name) {
 		name = name.toLowerCase();
 		var target = this._targets[name];
 		if (target != null) {
@@ -224,7 +224,7 @@ module.exports = (function client_export() {
 		return target;
 	};
 
-	Client.prototype._getTargetFromInbound = function(inbound) {
+	Client.prototype._getTargetFromInbound = function _getTargetFromInbound(inbound) {
 		var name = null;
 		if (inbound.params != null && inbound.params.length > 0) {
 			name = inbound.params[0];
@@ -239,31 +239,31 @@ module.exports = (function client_export() {
 		return this.getTarget(name);
 	};
 
-	Client.prototype.knowsTarget = function(name) {
+	Client.prototype.knowsTarget = function knowsTarget(name) {
 		return this._targets[name.toLowerCase()] != null;
 	};
 
-	Client.prototype.onInboundEvent = function(event, callback) {
+	Client.prototype.onInboundEvent = function onInboundEvent(event, callback) {
 		var self = this;
-		this._allTargets.on(event, function(inbound) {
+		this._allTargets.on(event, function _cb_allTargetsInbound(inbound) {
 			var context = self._getTargetFromInbound(inbound);
 			callback.call(context, inbound);
 		});
 	};
 
-	Client.prototype.onceInboundEvent = function(event, callback) {
+	Client.prototype.onceInboundEvent = function onceInboundEvent(event, callback) {
 		var self = this;
-		this._allTargets.once(event, function(inbound) {
+		this._allTargets.once(event, function _cb_allTargetsInboundOnce(inbound) {
 			var context = self._getTargetFromInbound(inbound);
 			callback.call(context, inbound);
 		});
 	};
 
-	Client.prototype._logCommand = function(command) {
+	Client.prototype._logCommand = function _logCommand(command) {
 		this._opts.log.info('-> ' + this.user.name + '\t' + command.rawline().trim());
 	};
 
-	Client.prototype._logInbound = function(log, inbound) {
+	Client.prototype._logInbound = function _logInbound(log, inbound) {
 		var from = this._opts.server;
 		if (inbound.prefix != null) {
 			from = inbound.prefix.target;
@@ -287,7 +287,7 @@ module.exports = (function client_export() {
 		log.call(this._opts.log, '<- ' + from + '\t' + readable);
 	};
 
-	Client.prototype._logMessage = function(log, message) {
+	Client.prototype._logMessage = function _logMessage(log, message) {
 		log.call(this._opts.log, '<> ' + message);
 	};
 

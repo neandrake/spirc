@@ -15,41 +15,45 @@ module.exports = (function targets_export() {
 	};
 	inherits(Target, process.EventEmitter);
 
-	Target.prototype.onInbound = function(callback) {
+	Target.prototype.onInbound = function onInbound(callback) {
 		this.client.on('inbound', callback);
 	};
 
-	Target.prototype.say = function(msg) {
+	Target.prototype.say = function say(msg) {
 		this.client.send(new PrivMsg(this.name, msg));
 	};
 
-	Target.prototype.onPrivMsg = function(callback) {
+	Target.prototype.onSaid = function onSaid(callback) {
 		this.on(':PRIVMSG', callback);
 	};
 
-	Target.prototype.pipe = function(stream) {
+	Target.prototype.pipe = function pipe(stream) {
 		var self = this;
 		var tr = new TokenReader(stream);
-		tr.on('token', function(line) {
+		tr.on('token', function _cb_onLinePipe(line) {
 			self.say(line);
 		});
 	};
 
-	var Host = function(client, name) {
+	var Host = function Host(client, name) {
 		Target.call(this, client, name);
 	};
 	inherits(Host, Target);
 
-	Host.prototype.quit = function(msg) {
+	Host.prototype.quit = function quit(msg) {
 		this.client.send(new Quit(msg));
 	};
 
-	var User = function(client, name) {
+	Host.prototype.onPing = function onPing(callback) {
+		this.on(':PING', callback);
+	};
+
+	var User = function User(client, name) {
 		Target.call(this, client, name);
 	};
 	inherits(User, Target);
 
-	var Channel = function(client, name) {
+	var Channel = function Channel(client, name) {
 		Target.call(this, client, name);
 	};
 	inherits(Channel, Target);
@@ -57,15 +61,15 @@ module.exports = (function targets_export() {
 	Channel.charLimit = 50;
 	Channel.illegalTokens = [' ', ',', String.fromCharCode(7)];
 
-	Channel.prototype.join = function() {
+	Channel.prototype.join = function join() {
 		this.client.send(new Join(this.name));
 	};
 
-	Channel.prototype.part = function(msg) {
+	Channel.prototype.part = function part(msg) {
 		this.client.send(new Part(this.name, msg));
 	};
 
-	Channel.isValidChannelName = function(name) {
+	Channel.isValidChannelName = function isValidChannelName(name) {
 		var hasValidStartToken = false;
 		var p, plen;
 		for (p=0, plen=Channel.startTokens.length; p<plen; p++) {

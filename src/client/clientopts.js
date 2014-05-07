@@ -6,7 +6,7 @@ var req = require('../core/requests.js'),
 	User = req.User;
 
 module.exports = (function clientopts_export() {
-	var ClientOpts = function(opts) {
+	var ClientOpts = function ClientOpts(opts) {
 		this.server = 'irc.freenode.net';
 		this.port = 6667;
 		this.nick = null;
@@ -40,7 +40,7 @@ module.exports = (function clientopts_export() {
 
 	ClientOpts.prototype = {
 		constructor: ClientOpts,
-		getUserCommand: function() {
+		getUserCommand: function getUserCommand() {
 			return new User(
 				this.username,
 				this.hostname,
@@ -48,17 +48,20 @@ module.exports = (function clientopts_export() {
 				this.realname
 			);
 		},
-		getNickCommand: function() {
+
+		getNickCommand: function getNickCommand() {
 			this._altNickIterator = 0;
 			return new Nick(this.nick);
 		},
-		getPassCommand: function() {
+
+		getPassCommand: function getPassCommand() {
 			if (this.pass != null) {
 				return new Pass(this.pass);
 			}
 			return null;
 		},
-		getAltNickCommand: function() {
+
+		getAltNickCommand: function getAltNickCommand() {
 			this._altNickIterator++;
 			if (this.altnicks.length < this._altNickIterator) {
 				return null;

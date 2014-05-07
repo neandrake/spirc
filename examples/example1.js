@@ -12,7 +12,7 @@ var user = client.user;
 
 // this method is added as a listener to targets,
 // and will be invoked with a Response when PRIVMSG events are emitted
-var respond = function(response) {
+function respond(response) {
     // the sender name and message are located in the response object, which
     // may differ depending on the response type, since it's PM, these are always the case
     // get a target object from client keyed on the sender's name
@@ -24,18 +24,18 @@ var respond = function(response) {
 };
 
 // graceful shutdown on ctrl+c
-process.on('SIGINT', function() {
+process.on('SIGINT', function onInterrupt() {
     client.disconnect('time to go');
 });
 
 // after conecting + registering user with server, join a channel
-client.on('registered', function() {
+client.on('registered', function onClientRegistered() {
     chan.join();
 });
 
 // register the respond callback
-user.onPrivMsg(respond);
-chan.onPrivMsg(respond);
+user.onSaid(respond);
+chan.onSaid(respond);
 
 // start connection to server
 client.connect();

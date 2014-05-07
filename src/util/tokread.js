@@ -1,7 +1,7 @@
 var inherits = require('util').inherits;
 
 module.exports = (function tokread_export() {
-	var TokenReader = function(stream, opts) {
+	var TokenReader = function TokenReader(stream, opts) {
 		var self = this;
 
 		self.opts = {
@@ -19,7 +19,7 @@ module.exports = (function tokread_export() {
 		}
 
 		var buffer = '';
-		stream.addListener('data', function(chunk) {
+		stream.addListener('data', function _cb_onData(chunk) {
 			buffer += chunk;
 			var tokens = buffer.split(self.opts.delimiter);
 			var lastIndex = buffer.lastIndexOf(self.opts.delimiter);
