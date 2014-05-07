@@ -145,14 +145,15 @@ module.exports = (function client_export() {
 		this._logInbound(log, inbound);
 
 		var target = this._getTargetFromInbound(inbound);
+		this._allTargets.emit('inbound', inbound);
+		target.emit('inbound', inbound);
+
 		var command = inbound.command;
 		if (command != null) {
 			command = ':' + command;
-			target.emit(command, inbound);
 			this._allTargets.emit(command, inbound);
+			target.emit(command, inbound);
 		}
-		this._allTargets.emit('inbound', inbound);
-		target.emit('inbound', inbound);
 	};
 
 	Client.prototype.send = function send(command) {
@@ -201,7 +202,7 @@ module.exports = (function client_export() {
 		this._logCommand(command);
 		command.sentTimestamp = new Date();
 		this._lastOutbound = command;
-		this.emit('_outbound', command);
+		this.emit('outbound', command);
 
 		if (this._outboundQueue.length > 0) {
 			this._onOutboundQueued();

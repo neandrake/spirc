@@ -6,6 +6,9 @@ IRC Library
 ###About
 * This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - no dependencies.
 
+####Status (May 6 2014)
+* Currently only client api is functional. The only testd commands for IRC have been those used for registering, joining/parting channels, sending/receiving messages. The current example1 script (described below) is fully functional and works. The auto-pong, auto-alt-nick-registering, and sending threshold are all functional.
+
 ###API
 
 ####Overview
@@ -59,6 +62,7 @@ chan.onSaid(respond);
 client.connect();
 ```
 
+####Client Options
 _Client_ constructor parses the object parameter as a _ClientOpts_, and can specify:
 ```javascript
 {
@@ -87,6 +91,7 @@ _Client_ constructor parses the object parameter as a _ClientOpts_, and can spec
 }
 ```
 
+####Targets
 _Target_ defines several convenience methods
 - _say_ - sends a PRIVMSG command to the target.
 - _onSaid_ - register a listener for PRIVMSG messages.
@@ -107,17 +112,26 @@ var req = require('requests');
 client.send(new req.Names('#channel'));
 ```
 
+####Events
+When an inbound message is received these events are fired:
+- If the inbound message could not properly be parsed as an IRC message, an 'error' event is fired.
+- The _allTargets emits an 'inbound' event with the inbound message.
+- The target the message is directed to emits an 'inbound' event with the inbound message.
+- The _allTargets emits an event named after the parsed command, with the inbound message.
+- The target the message is directed to emits an event named after the parsed command, with the inbound message.
+
+When an outbound message is sent, the client emits an 'outbound' event with the outbound message.
+
 The _Client_ object also provides methods for registering listeners for when any inbound event is received, regardless of target. These events are fired before the specified target has its events fired.
 - _onInboundEvent_ - receives inbounds for a specific event
 - _onceInboundEvent_ - receives inbounds for a specific event, but is only fired once
-
 
 
 The client's socket reading, as well as the target's _pipe_ method use _TokenReader_ object. This is a simple object that emits 'token' events with data based on a given delimiter. The default delimiter is the newline character.
 
 
 ###Roadmap
-April 22, 2014
+May 6, 2014
 - Promise-ish
 - Additional IRC Support
 - Consistent and Simplified API
