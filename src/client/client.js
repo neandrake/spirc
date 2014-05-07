@@ -27,7 +27,7 @@ module.exports = (function client_export() {
 		this._lastOutbound = null;
 		this._lastInbound = null;
 
-		this._anyTarget = new Target(this, null);
+		this._allTargets = new Target(this, null);
 		this.server = new Host(this, this._opts.server);
 		this.user = new User(this, this._opts.nick);
 
@@ -47,20 +47,12 @@ module.exports = (function client_export() {
 			self._logMessage(this._opts.log.info, 'disconnected');
 		});
 
-		self.anyOnce(':NOTICE', function(inbound) {
+		self.onceInboundEvent(':NOTICE', function(inbound) {
 			self._getTargetFromInbound(inbound);
- 		});
-
-		self.anyOnce(':001', function(inbound) {
-			self.emit('registered', inbound);
 		});
 
-		self.anyOnAny(function(inbound) {
-			var log = self._opts.log.info;
-			if (inbound.command.toUpperCase() == 'ERROR') {
-				log = self._opts.log.error;
-			}
-			self._logInbound(log, inbound);
+		self.onInboundEvent(':001', function(inbound) {
+			self.emit('registered', inbound);
 		});
 	};
 	inherits(Client, process.EventEmitter);
@@ -146,15 +138,21 @@ module.exports = (function client_export() {
 		inbound.recvTimestamp = new Date();
 		this._lastInbound = inbound;
 
+		var log = this._opts.log.info;
+		if (inbound.command.toUpperCase() == 'ERROR') {
+			log = this._opts.log.error;
+		}
+		this._logInbound(log, inbound);
+
 		var target = this._getTargetFromInbound(inbound);
 		var command = inbound.command;
 		if (command != null) {
 			command = ':' + command;
 			target.emit(command, inbound);
-			this._anyTarget.emit(command, inbound);
+			this._allTargets.emit(command, inbound);
 		}
-		target.emit('_anyResponse', inbound);
-		this._anyTarget.emit('_anyResponse', inbound);
+		this._allTargets.emit('inbound', inbound);
+		target.emit('inbound', inbound);
 	};
 
 	Client.prototype.send = function(command) {
@@ -199,8 +197,8 @@ module.exports = (function client_export() {
 		}
 
 		var command = this._outboundQueue.shift();
-		this._logCommand(command);
 		this._conn.write(command.rawline());
+		this._logCommand(command);
 		command.sentTimestamp = new Date();
 		this._lastOutbound = command;
 		this.emit('_outbound', command);
@@ -245,17 +243,17 @@ module.exports = (function client_export() {
 		return this._targets[name.toLowerCase()] != null;
 	};
 
-	Client.prototype.anyOnce = function(event, callback) {
+	Client.prototype.onInboundEvent = function(event, callback) {
 		var self = this;
-		this._anyTarget.once(event, function(inbound) {
+		this._allTargets.on(event, function(inbound) {
 			var context = self._getTargetFromInbound(inbound);
 			callback.call(context, inbound);
 		});
 	};
 
-	Client.prototype.anyOnAny = function(callback) {
+	Client.prototype.onceInboundEvent = function(event, callback) {
 		var self = this;
-		this._anyTarget.on('_anyResponse', function(inbound) {
+		this._allTargets.once(event, function(inbound) {
 			var context = self._getTargetFromInbound(inbound);
 			callback.call(context, inbound);
 		});
@@ -290,7 +288,7 @@ module.exports = (function client_export() {
 	};
 
 	Client.prototype._logMessage = function(log, message) {
-		log.call(this._opts.log, '<- ' + message);
+		log.call(this._opts.log, '<> ' + message);
 	};
 
 	return {

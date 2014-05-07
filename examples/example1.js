@@ -34,8 +34,8 @@ client.on('registered', function() {
 });
 
 // register the respond callback
-user.onSaid(respond);
-chan.onSaid(respond);
+user.onPrivMsg(respond);
+chan.onPrivMsg(respond);
 
 // start connection to server
 client.connect();

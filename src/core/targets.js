@@ -15,16 +15,16 @@ module.exports = (function targets_export() {
 	};
 	inherits(Target, process.EventEmitter);
 
-	Target.prototype.onAnyResponse = function(callback) {
-		this.on('_anyResponse', callback);
+	Target.prototype.onInbound = function(callback) {
+		this.client.on('inbound', callback);
 	};
 
 	Target.prototype.say = function(msg) {
 		this.client.send(new PrivMsg(this.name, msg));
 	};
 
-	Target.prototype.onSaid = function(callback) {
-		this.on('PRIVMSG', callback);
+	Target.prototype.onPrivMsg = function(callback) {
+		this.on(':PRIVMSG', callback);
 	};
 
 	Target.prototype.pipe = function(stream) {
