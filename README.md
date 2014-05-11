@@ -5,8 +5,6 @@ IRC Library
 This library is intended to be the building blocks for IRC utilities requiring little or no dependencies. It is developed as a personal project to learn the IRC protocol as well as JavaScript library development.
 
 ###Contents
-- [spirc](#spirc)
-- [Contents](#contents)
 - [Status](#status)
 - [Roadmap](#roadmap)
 - [Install](#install)
@@ -17,6 +15,7 @@ This library is intended to be the building blocks for IRC utilities requiring l
 	- [Events](#events)
 	- [Examples](#examples)
 	- [Client Options](#client-options)
+- [Resources](#resources)
 
 ####Status
 _May 6 2014 (Version 0.1.2)_
@@ -42,7 +41,7 @@ _May 6 2014_
 - [ ] CTCP - XDCC, etc.
 - [ ] IRC Server API - Large project not in the near future.
 
-####Install
+###Install
 This project is published through Node Package Manager.
 ```
 $ npm install spirc
@@ -175,3 +174,16 @@ client.connect();
 	"log": new Log(process.stdout),	// log for output, this will like be removed altogeter
 }
 ```
+
+
+###Resources
+- [RFC 1459: Internet Relay Chat Protocol (pdf)](http://tools.ietf.org/pdf/rfc1459.pdf)
+- [RFC 2810: Internet Relay Chat: Architecture (pdf)](http://tools.ietf.org/pdf/rfc2810.pdf)
+- [RFC 2811: Internet Relay Chat: Channel Management (pdf)](http://tools.ietf.org/pdf/rfc2811.pdf) 
+- [RFC 2812: Internet Relay Chat: Client Protocol (pdf)](http://tools.ietf.org/pdf/rfc2812.pdf)
+- [RFC 2813: Internet Relay Chat: Server Protocol (pdf)](http://tools.ietf.org/pdf/rfc2813.pdf)
+- [CTCP Specification (html)](http://www.irchelp.org/irchelp/rfc/ctcpspec.html)
+- [IRCv3 Working Group (html)](http://ircv3.atheme.org/)
+- [EFnet Docs: Protocols (html)](http://www.efnet.org/?module=docs)
+- [irc.org Techie Docs (html)](http://www.irc.org/techie.html)
+- [irclib: Python IRC Library (bitbucket)](https://bitbucket.org/jaraco/irc/src)
