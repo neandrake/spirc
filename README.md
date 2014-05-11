@@ -108,7 +108,7 @@ _Host_ also contains these convenience methods
 
 The _Client_ object contains a method _send_ for sending an _Outbound_ request, which is used by all the convenience methods.
 ```javascript
-var req = require('requests');
+var req = require('spirc').Requests;
 client.send(new req.Names('#channel'));
 ```
 
