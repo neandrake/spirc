@@ -95,6 +95,7 @@ module.exports = (function client_export() {
 			}
 		}
 		this.server.quit(msg);
+		this._conn.end();
 	};
 
 	Client.prototype.register = function register(inbound) {
