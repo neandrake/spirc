@@ -1,52 +1,53 @@
 spirc
 =====
 
-IRC Library
+	IRC Library
 
+###Table of Contents
 * [About](#about)
 * [Status](#status)
 * [Roadmap](#roadmap)
 * [Install / Project Use](#install)
 * [API](#api)
-	* Overview](#overview)
+	* [Overview](#overview)
 	* [Examples](#examples)
 	* [Client Options](#client-options)
 	* [Targets](#targets)
 	* [Events](#events)
 
 ###About
-* This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - little/no dependencies.
+	This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - little/no dependencies.
 
 ####Status
-* May 6 2014 - Version 0.1.2
-* Currently only client api is functional. The only testd commands for IRC have been those used for registering, joining/parting channels, sending/receiving messages. The current example1 script (described below) is fully functional and works. The auto-pong, auto-alt-nick-registering, and sending threshold are all functional.
+	May 6 2014 - Version 0.1.2
+	Currently only client api is functional. The only testd commands for IRC have been those used for registering, joining/parting channels, sending/receiving messages. The current example1 script (described below) is fully functional and works. The auto-pong, auto-alt-nick-registering, and sending threshold are all functional.
 
 ###Roadmap
-* May 6 2014
-- Promise-ish
-- Additional IRC Support
-- Consistent and Simplified API
-- JSDoc Documentation/Comments
-- CTCP
-- IRC Server API
+	May 6 2014
+	- Promise-ish
+	- Additional IRC Support
+	- Consistent and Simplified API
+	- JSDoc Documentation/Comments
+	- CTCP
+	- IRC Server API
 
 ####Install
-This project is published through Node Package Manager.
+	This project is published through Node Package Manager.
 ```
 $ npm install spirc
 ```
-If using from local git clone, see example1.js which includes the repository source files instead of npm.
+	If using from local git clone, see example1.js which includes the repository source files instead of npm.
 
 ###API
-####Overview
-* After connecting successfully to a server, a 'register' event is emitted on the client, which is the appropriate time to auto-join channels.
-* Messages received are _Inbound_ objects.
-* Messages sent are _Outbound_ objects.
-* Messages are emitted from _Targets_, which can either be _Hosts_, _Channels_, or _Users_.
-* IRC Message events emitted from targets are directly named from IRC RFCs, but are prefixed with ':' character in order to differentiate from other events emitted from the target. Examples are 'PRIVMSG' or '433'.
+	####Overview
+		* After connecting successfully to a server, a 'register' event is emitted on the client, which is the appropriate time to auto-join channels.
+		* Messages received are _Inbound_ objects.
+		* Messages sent are _Outbound_ objects.
+		* Messages are emitted from _Targets_, which can either be _Hosts_, _Channels_, or _Users_.
+		* IRC Message events emitted from targets are directly named from IRC RFCs, but are prefixed with ':' character in order to differentiate from other events emitted from the target. Examples are 'PRIVMSG' or '433'.
 
-####Examples
-Simple example of a bot that connects to a server, joins a channel, then echoes all messages received from the channel or PM back to the channel.
+	####Examples
+		Simple example of a bot that connects to a server, joins a channel, then echoes all messages received from the channel or PM back to the channel.
 ```javascript
 var Client = require('spirc').Client;
 var client = new Client({
@@ -89,8 +90,8 @@ chan.onSaid(respond);
 client.connect();
 ```
 
-####Client Options
-_Client_ constructor parses the object parameter as a _ClientOpts_, and can specify:
+	####Client Options
+		_Client_ constructor parses the object parameter as a _ClientOpts_, and can specify:
 ```javascript
 {
 	// traditional setup
@@ -118,41 +119,40 @@ _Client_ constructor parses the object parameter as a _ClientOpts_, and can spec
 }
 ```
 
-####Targets
-_Target_ defines several convenience methods
-- _say_ - sends a PRIVMSG command to the target.
-- _onSaid_ - register a listener for PRIVMSG messages.
-- _onInbound_ - register a listener for all inbound messages.
-- _pipe_ - pipe data from a stream to the target via PRIVMSG commands.
+	####Targets
+		_Target_ defines several convenience methods
+			- _say_ - sends a PRIVMSG command to the target.
+			- _onSaid_ - register a listener for PRIVMSG messages.
+			- _onInbound_ - register a listener for all inbound messages.
+			- _pipe_ - pipe data from a stream to the target via PRIVMSG commands.
 
-_Channel_ also contains these convenience methods
-- _join_ - join the channel
-- _part_ - leave the channel
+		_Channel_ also contains these convenience methods
+			- _join_ - join the channel
+			- _part_ - leave the channel
 
-_Host_ also contains these convenience methods
-- _quit_ - disconnect from the irc server
-- _onPing_ - convenience for registering a listener whena PING message is received
+		_Host_ also contains these convenience methods
+			- _quit_ - disconnect from the irc server
+			- _onPing_ - convenience for registering a listener whena PING message is received
 
-The _Client_ object contains a method _send_ for sending an _Outbound_ request, which is used by all the convenience methods.
+		The _Client_ object contains a method _send_ for sending an _Outbound_ request, which is used by all the convenience methods.
 ```javascript
 var req = require('spirc').Requests;
 client.send(new req.Names('#channel'));
 ```
 
-####Events
-When an inbound message is received these events are fired:
-- If the inbound message could not properly be parsed as an IRC message, an 'error' event is fired.
-- The _allTargets emits an 'inbound' event with the inbound message.
-- The target the message is directed to emits an 'inbound' event with the inbound message.
-- The _allTargets emits an event named after the parsed command, with the inbound message.
-- The target the message is directed to emits an event named after the parsed command, with the inbound message.
+	####Events
+		When an inbound message is received these events are fired:
+			- If the inbound message could not properly be parsed as an IRC message, an 'error' event is fired.
+			- The _allTargets emits an 'inbound' event with the inbound message.
+			- The target the message is directed to emits an 'inbound' event with the inbound message.
+			- The _allTargets emits an event named after the parsed command, with the inbound message.
+			- The target the message is directed to emits an event named after the parsed command, with the inbound message.
 
-When an outbound message is sent, the client emits an 'outbound' event with the outbound message.
+		When an outbound message is sent, the client emits an 'outbound' event with the outbound message.
 
-The _Client_ object also provides methods for registering listeners for when any inbound event is received, regardless of target. These events are fired before the specified target has its events fired.
-- _onInboundEvent_ - receives inbounds for a specific event
-- _onceInboundEvent_ - receives inbounds for a specific event, but is only fired once
+		The _Client_ object also provides methods for registering listeners for when any inbound event is received, regardless of target. These events are fired before the specified target has its events fired.
+			- _onInboundEvent_ - receives inbounds for a specific event
+			- _onceInboundEvent_ - receives inbounds for a specific event, but is only fired once
 
 
-The client's socket reading, as well as the target's _pipe_ method use _TokenReader_ object. This is a simple object that emits 'token' events with data based on a given delimiter. The default delimiter is the newline character.
-
+	The client's socket reading, as well as the target's _pipe_ method use _TokenReader_ object. This is a simple object that emits 'token' events with data based on a given delimiter. The default delimiter is the newline character.
