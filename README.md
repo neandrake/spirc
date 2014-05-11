@@ -6,8 +6,14 @@ IRC Library
 ###About
 * This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - no dependencies.
 
-####Status (May 6 2014)
+####Status (May 6 2014) - Version 0.1.2
 * Currently only client api is functional. The only testd commands for IRC have been those used for registering, joining/parting channels, sending/receiving messages. The current example1 script (described below) is fully functional and works. The auto-pong, auto-alt-nick-registering, and sending threshold are all functional.
+
+####Install / Project Use
+This project is published through Node Package Manager.
+```
+$ npm install spirc
+```
 
 ###API
 

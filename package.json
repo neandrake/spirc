@@ -1,9 +1,10 @@
 {
 	"name": "spirc",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "IRC Library",
 	"keywords": [
-		"irc"
+		"irc",
+		"client"
 	],
 	"author": {
 		"name": "Christopher Speck",
