@@ -3,16 +3,16 @@ spirc
 
 IRC Library
 
-#[About](#about)
-#[Status](#status)
-#[Roadmap](#roadmap)
-#[Install / Project Use](#install)
-#[API](#api)
-##[Overview](#overview)
-##[Examples](#examples)
-##[Client Options](#client-options)
-##[Targets](#targets)
-##[Events](#events)
+* [About](#about)
+* [Status](#status)
+* [Roadmap](#roadmap)
+* [Install / Project Use](#install)
+* [API](#api)
+	* Overview](#overview)
+	* [Examples](#examples)
+	* [Client Options](#client-options)
+	* [Targets](#targets)
+	* [Events](#events)
 
 ###About
 * This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - little/no dependencies.
