@@ -3,24 +3,26 @@ spirc
 
 IRC Library
 
-[About](#about)
-[Status](#status)
-[Roadmap](#roadmap)
-[Install / Project Use](#install--project-use)
-[API](#api)
-	[Overview](#overview)
-	[Examples](#examples)
-	[Client Options](#client-options)
-	[Targets](#targets)
-	[Events](#events)
+#[About](#about)
+#[Status](#status)
+#[Roadmap](#roadmap)
+#[Install / Project Use](#install)
+#[API](#api)
+##[Overview](#overview)
+##[Examples](#examples)
+##[Client Options](#client-options)
+##[Targets](#targets)
+##[Events](#events)
 
 ###About
 * This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - little/no dependencies.
 
-####Status (May 6 2014) - Version 0.1.2
+####Status
+* May 6 2014 - Version 0.1.2
 * Currently only client api is functional. The only testd commands for IRC have been those used for registering, joining/parting channels, sending/receiving messages. The current example1 script (described below) is fully functional and works. The auto-pong, auto-alt-nick-registering, and sending threshold are all functional.
 
-###Roadmap (May 6 2014)
+###Roadmap
+* May 6 2014
 - Promise-ish
 - Additional IRC Support
 - Consistent and Simplified API
@@ -28,11 +30,12 @@ IRC Library
 - CTCP
 - IRC Server API
 
-####Install / Project Use
+####Install
 This project is published through Node Package Manager.
 ```
 $ npm install spirc
 ```
+If using from local git clone, see example1.js which includes the repository source files instead of npm.
 
 ###API
 ####Overview
