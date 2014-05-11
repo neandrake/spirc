@@ -3,11 +3,30 @@ spirc
 
 IRC Library
 
+[About](#about)
+[Status](#status)
+[Roadmap](#roadmap)
+[Install / Project Use](#install--project-use)
+[API](#api)
+	[Overview](#overview)
+	[Examples](#examples)
+	[Client Options](#client-options)
+	[Targets](#targets)
+	[Events](#events)
+
 ###About
-* This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - no dependencies.
+* This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - little/no dependencies.
 
 ####Status (May 6 2014) - Version 0.1.2
 * Currently only client api is functional. The only testd commands for IRC have been those used for registering, joining/parting channels, sending/receiving messages. The current example1 script (described below) is fully functional and works. The auto-pong, auto-alt-nick-registering, and sending threshold are all functional.
+
+###Roadmap (May 6 2014)
+- Promise-ish
+- Additional IRC Support
+- Consistent and Simplified API
+- JSDoc Documentation/Comments
+- CTCP
+- IRC Server API
 
 ####Install / Project Use
 This project is published through Node Package Manager.
@@ -16,7 +35,6 @@ $ npm install spirc
 ```
 
 ###API
-
 ####Overview
 * After connecting successfully to a server, a 'register' event is emitted on the client, which is the appropriate time to auto-join channels.
 * Messages received are _Inbound_ objects.
@@ -135,12 +153,3 @@ The _Client_ object also provides methods for registering listeners for when any
 
 The client's socket reading, as well as the target's _pipe_ method use _TokenReader_ object. This is a simple object that emits 'token' events with data based on a given delimiter. The default delimiter is the newline character.
 
-
-###Roadmap
-May 6, 2014
-- Promise-ish
-- Additional IRC Support
-- Consistent and Simplified API
-- JSDoc Documentation/Comments
-- CTCP
-- IRC Server API
