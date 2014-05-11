@@ -4,7 +4,8 @@
 	"description": "IRC Library",
 	"keywords": [
 		"irc",
-		"client"
+		"client",
+		"bot"
 	],
 	"author": {
 		"name": "Christopher Speck",
