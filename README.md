@@ -2,7 +2,7 @@ spirc
 =====
 IRC Library
 
-This library is developed as a personal project to learn the IRC protocol. It is designed to be self-contained - little/no dependencies - and to be the building blocks for IRC utilities.
+This library is intended to be the building blocks for IRC utilities requiring little or no dependencies. It is developed as a personal project to learn the IRC protocol as well as JavaScript library development.
 
 ###Contents
 - [spirc](#spirc)
@@ -24,7 +24,7 @@ _May 6 2014 (Version 0.1.2)_
 Client API is only functional at this point
 - [x] Connect/Disconnect to server
 - [x] Register User
-	- [x] Alternate nick registration when preferred is taken
+- [x] Alternate nick registration when preferred is taken
 - [x] Join/Part Channels
 - [x] Send/Receive messages (PRIVMSG on channels or pm)
 - [x] Auto-PONG when PING is received from server
@@ -36,7 +36,7 @@ Connecting via SSL had been working, but an update to node-js has currently brok
 ###Roadmap
 _May 6 2014_
 - [ ] Promise-ish - Some manner of promises would be useful not only for basic async i/o handling, but at the IRC message level of request/response.
-- [ ] Consistent and Simplified API - Have been working on this some with project layout and API naming and such, once the project expands this will be easier to identify and document. ex: `Outbound` requests must always be directed at a `Target` which is currently all managed through convenience methods.
+- [ ] Consistent and Simplified API - Have been working on this some with project layout and API naming and such, once the project expands this will be easier to identify and document. ex: Outbound requests must always be directed at a Target which is currently all managed through convenience methods.
 - [ ] Additional IRC Support - Proper state tracking of IRC specifics, such as modes, targets in a channel, etc. Also any extended info from IRC RFCs.
 - [ ] JSDoc Documentation/Comments - Would like to supply some form of publishable documentation that is inlined in the code, for API exposure.
 - [ ] CTCP - XDCC, etc.
@@ -55,7 +55,7 @@ If using from local git clone, see `examples/example1.js` which includes the rep
 - Messages received are `Inbound` objects.
 - Messages sent are `Outbound` objects.
 - Messages are emitted from `Target`s, which can either be `Host`s, `Channel`s, or `User`s.
-- IRC Message events emitted from targets are directly named from IRC RFCs, but are prefixed with ':' character in order to differentiate from other events emitted from the target. Examples are ':PRIVMSG' or ':433'.
+- IRC Message events emitted from targets are directly named from the message command, but are prefixed with ':' character in order to differentiate from other events emitted from the target. Examples are ':PRIVMSG' or ':433'.
 
 ####Client
 The `Client` object contains a method `send` for sending an `Outbound` request, which is used by all the convenience methods.
@@ -68,7 +68,7 @@ The `Client` object is what is used to manage a connection to a single server, e
 - `send` - sends an `Outbound` message, or more accurately queues an outbound message.
 - `connect` - connects to the server specified in the options set on client - a `connected` event is emitted once this has completed.
 - `disconnect` - disconnect from server, sending PARTs to all known channels, followed by a QUIT to the server - the socket is then closed and a `disconnected` event is emitted.
-- 'registered' event - fired when it's been determined that the client's user credentials were successfully registered - by default the client will attempt to register with the provided user credentials after a connection has been made.
+- `registered` event - fired when it's been determined that the client's user credentials were successfully registered - by default the client will attempt to register with the provided user credentials after a connection has been made.
 - `error` event - fired when a connection error occurs or if an IRC inbound message indicates an error.
 
 The `Client` object also provides methods for registering listeners for when any inbound event is received, regardless of target. These events are fired before the specified target has its events fired.
@@ -78,19 +78,19 @@ The `Client` object also provides methods for registering listeners for when any
 The client's socket reading, as well as the target's `pipe` method use `TokenReader` object. This is a simple object that emits `token` events with data based on a given delimiter. The default delimiter is the newline character.
 
 ####Targets
-`Target` defines several convenience methods
+__Target__ defines several convenience methods
 - `say` - sends a PRIVMSG command to the target.
 - `onSaid` - register a listener for PRIVMSG messages directed at this target.
 - `onInbound` - register a listener for all inbound messages directed at this target.
 - `pipe` - pipe data from a stream to the target via PRIVMSG commands.
-- IRC Message Events - targets will emit events for IRC messages directed at them. The event name is the IRC command prefixed by a colon - ex: a PRIVMSG handler can be registered with `.on(':PRIVMSG', callback)`
+- IRC Message Events - targets will emit events for IRC messages directed at them. These events will contain the inbound message as the only parameter. The event name is the IRC command prefixed by a colon - ex: `.on(':PRIVMSG', cb)`
 
-`Channel` also contains these convenience methods
+__Channel__ is a Target and also contains these convenience methods
 - `join` - join the channel
-- `part` - leave the channel
+- `part` - leave the channel, can provide leaving message.
 
-`Host` also contains these convenience methods
-- `quit` - disconnect from the irc server
+__Host__ is a Target and also contains these convenience methods
+- `quit` - disconnect from the irc server, can provide leaving message.
 - `onPing` - convenience for registering a listener whena PING message is received
 
 ####Events
@@ -164,7 +164,7 @@ client.connect();
 	"servername": '127.0.0.1',
 	"realname": 'realname',
 
-	// support for SSL
+	// use SSL connection
 	"secure": false,
 
 	// some additional options
