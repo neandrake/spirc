@@ -70,6 +70,7 @@ module.exports = (function message_export() {
 	};
 
 	Message.delim = '\r\n';
+	Message.maxLength = 512;
 
 	Message.prototype = {
 		constructor: Message,

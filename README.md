@@ -20,7 +20,7 @@ This library is intended to be the building blocks for IRC utilities requiring l
 ####Status
 _May 6 2014 (Version 0.1.2)_
 
-Client API is only functional at this point
+Only the Client API is only functional.
 - [x] Connect/Disconnect to server
 - [x] Register User
 - [x] Alternate nick registration when preferred is taken

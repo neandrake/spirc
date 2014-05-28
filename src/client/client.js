@@ -82,7 +82,13 @@ module.exports = (function client_export() {
 			self.emit('error', err);
 		});
 
-		var tr = new TokenReader(self._conn, { delimiter: MessageDelim });
+		self._conn.setEncoding(self._opts.encoding);
+
+		var tr = new TokenReader(self._conn, {
+			encoding: self._opts.encoding,
+			delimiter: MessageDelim
+		});
+		
 		tr.on('token', function _cb_onToken(token) {
 			self._onInbound(token)
 		});

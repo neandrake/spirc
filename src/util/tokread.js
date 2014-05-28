@@ -5,6 +5,7 @@ module.exports = (function tokread_export() {
 		var self = this;
 
 		self.opts = {
+			encodings: 'utf8',
 			delimiter: '\n'
 		};
 
@@ -19,8 +20,8 @@ module.exports = (function tokread_export() {
 		}
 
 		var buffer = '';
-		stream.addListener('data', function _cb_onData(chunk) {
-			buffer += chunk;
+		stream.on('data', function _cb_onData(chunk) {
+			buffer += chunk.toString(self.opts.encoding);
 			var tokens = buffer.split(self.opts.delimiter);
 			var lastIndex = buffer.lastIndexOf(self.opts.delimiter);
 			if (lastIndex == buffer.length - 1 - self.opts.delimiter.length) {

@@ -1,0 +1,325 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"once",
+				"onceInboundEvent"
+			],
+			[
+				"getTarget",
+				"_getTargetFromInbound"
+			],
+			[
+				"_get",
+				"_getTargetFromInbound"
+			],
+			[
+				"create",
+				"createIfUnknown"
+			],
+			[
+				"_on",
+				"_onQueueOutbound"
+			],
+			[
+				"prot",
+				"prototype"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 47.0,
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"markdo",
+				"Set Syntax: Markdown"
+			],
+			[
+				"plain",
+				"Set Syntax: Plain Text"
+			],
+			[
+				"mark",
+				"Set Syntax: Markdown"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '7183a2d3e96f11eeadd761d777e62404' + 'e330c659d4bb41d3bdf022e94cab3cd0'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/cspeckrun/Projects/spirc/src/core/message.js",
+		"/Users/cspeckrun/Projects/spirc/src/client/clientopts.js",
+		"/Users/cspeckrun/Projects/spirc/src/client/client.js",
+		"/Users/cspeckrun/Projects/spirc/src/util/tokread.js",
+		"/Users/cspeckrun/Projects/spirc/README.md",
+		"/Users/cspeckrun/Projects/spirc/package.json",
+		"/Users/cspeckrun/Projects/spirc/.git/COMMIT_EDITMSG",
+		"/Users/cspeckrun/Projects/spirc/spirc.sublime-workspace",
+		"/Users/cspeckrun/Library/Application Support/Sublime Text 3/Packages/User/Default (OSX).sublime-keymap",
+		"/Users/cspeckrun/Library/Application Support/Sublime Text 3/Packages/Default/Default (OSX).sublime-keymap",
+		"/Users/cspeckrun/Projects/spirc/lib/main.js",
+		"/Users/cspeckrun/Projects/doorbot/doorbot.js",
+		"/Users/cspeckrun/Projects/doorbot/suppoortbot.js",
+		"/Users/cspeckrun/Projects/spirc/src/core/targets.js",
+		"/Users/cspeckrun/Projects/spirc/src/core/requests.js",
+		"/Users/cspeckrun/Projects/spirc/src/util/log.js",
+		"/Users/cspeckrun/Projects/spirc/examples/example1.js"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"`",
+			"_",
+			"*",
+			"* ",
+			"\n*",
+			"*",
+			"Events",
+			"Targets",
+			"Examples",
+			"Overview",
+			"Roadmap",
+			"Status",
+			"this",
+			"_getTargetFromInbound",
+			"'_outbound",
+			"_outbound",
+			"emit",
+			"'inbound'",
+			"onceInboundEvent",
+			"onInboundEvent",
+			"onpriv",
+			"onAllInbound",
+			"anyOnce",
+			"onany",
+			"_anyResponse",
+			"_anyTarget",
+			"anyOnce",
+			"};\n",
+			"anyOnce",
+			"anyOnAny",
+			"_logCommand",
+			"_logMessage",
+			"_getTargetFromInbound",
+			"'register'",
+			"_inbound",
+			"hasTarget",
+			"anyOn",
+			"anyOnAny",
+			"anyOnceAny",
+			"anyOnce",
+			"getTargetFromInbound",
+			"_lastCommandSent",
+			"_lastResponseRecv",
+			"response",
+			"logRespon",
+			"response",
+			"getServerAliases",
+			"anyOnce",
+			"_getTargetOrServer",
+			"response",
+			"_getTargetOrServer",
+			"getTarget(",
+			"hasTarget",
+			"getTarget",
+			"_getTargetOrServer",
+			"_onQueueOutbound",
+			"_queueOutbound",
+			"_outbound",
+			"_commandQueue",
+			"_onque",
+			"_onQueueOutbound",
+			"_qOutbound",
+			"_onCommandRequest",
+			"'_request'",
+			"_onResponseReceived",
+			"'_receive'",
+			"'close'",
+			"'disconnect'",
+			"'connect'",
+			"inbound",
+			"Response",
+			"Request",
+			"pong",
+			"Pong",
+			"cmd",
+			"type",
+			"cmd",
+			"Message",
+			"inherits",
+			"Response",
+			"response",
+			"Response",
+			"response",
+			"Response",
+			"response",
+			"Response",
+			"response",
+			"Response",
+			"response",
+			"Response",
+			"response",
+			"Response",
+			"response",
+			"Response",
+			"response",
+			"Response",
+			"raw",
+			"read",
+			"raw",
+			"Command",
+			"val",
+			"line",
+			"server",
+			"this",
+			"url"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "spirc.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"clie",
+				"src/client/client.js"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+		],
+		"width": 392.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

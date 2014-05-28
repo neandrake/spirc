@@ -25,6 +25,8 @@ module.exports = (function clientopts_export() {
 		this.sendsPerSec = 4;
 		this.log = new Log(process.stdout);
 
+		this.encoding = 'utf8';
+
 		this._altNickIterator = -1;
 
 		if (typeof(opts) == 'object') {
