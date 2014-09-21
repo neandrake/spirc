@@ -3,7 +3,7 @@ module.exports = (function log_exports() {
 		this.stream = stream;
 	};
 
-	Log.prototype.write = function write(prefix, message) {
+	Log.prototype._write = function write(prefix, message) {
 		if (this.stream != null) {
 			this.stream.write(prefix + ':\t' + message + '\n');
 		}
@@ -12,20 +12,20 @@ module.exports = (function log_exports() {
 	Log.prototype.info = function info() {
 		var args = ['Info'];
 		Array.prototype.push.apply(args, arguments);
-		this.write.apply(this, args);
+		this._write.apply(this, args);
 	};
 
 	Log.prototype.warn = function warn() {
 		var args = ['Warn'];
 		Array.prototype.push.apply(args, arguments);
-		this.write.apply(this, args);	
-	}
+		this._write.apply(this, args);	
+	};
 
 	Log.prototype.error = function error() {
 		var args = ['Error'];
 		Array.prototype.push.apply(args, arguments);
-		this.write.apply(this, args);
-	}
+		this._write.apply(this, args);
+	};
 
 	return {
 		Log: Log
