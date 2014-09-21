@@ -48,7 +48,10 @@ module.exports = (function client_export() {
 		});
 
 		self.onceInboundEvent(':NOTICE', function _cb_onceInboundNotice(inbound) {
-			self._getTargetFromInbound(inbound);
+			var name = self._getTargetNameFromInbound(inbound);
+			if (name != null && !self._knowsTargetName(name)) {
+				self._targets[name] = self.server;
+			}
 		});
 
 		self.onInboundEvent(':001', function _cb_on001Registered(inbound) {
@@ -96,7 +99,7 @@ module.exports = (function client_export() {
 
 	Client.prototype.disconnect = function disconnect(msg) {
 		for (var name in this._targets) {
-			if (this._targets[name].part) {
+			if (this._targets[name] && this._targets[name].part) {
 				this._targets[name].part(msg);
 			}
 		}
@@ -151,14 +154,19 @@ module.exports = (function client_export() {
 		}
 		this._logInbound(log, inbound);
 
-		var target = this._getTargetFromInbound(inbound);
-		this._allTargets.emit('inbound', inbound);
-		target.emit('inbound', inbound);
-
 		var command = inbound.command;
-		if (command != null) {
+		if (command != null && command.charAt(0) != ':') {
 			command = ':' + command;
+		}
+
+		this._allTargets.emit('inbound', inbound);
+		if (command != null) {
 			this._allTargets.emit(command, inbound);
+		}
+
+		var target = this._getTargetFromInbound(inbound);
+		target.emit('inbound', inbound);
+		if (command != null) {
 			target.emit(command, inbound);
 		}
 	};
@@ -232,7 +240,7 @@ module.exports = (function client_export() {
 		return target;
 	};
 
-	Client.prototype._getTargetFromInbound = function _getTargetFromInbound(inbound) {
+	Client.prototype._getTargetNameFromInbound = function _getTargetNameFromInbound(inbound) {
 		var name = null;
 		if (inbound.params != null && inbound.params.length > 0) {
 			name = inbound.params[0];
@@ -240,21 +248,28 @@ module.exports = (function client_export() {
 		if (name == null && inbound.prefix != null) {
 			name = inbound.prefix.target;
 		}
+		return name;
+	};
+
+	Client.prototype._getTargetFromInbound = function _getTargetFromInbound(inbound) {
+		var name = this._getTargetNameFromInbound(inbound);
 		if (name == null) {
 			return this.server;
 		}
-
 		return this.getTarget(name);
 	};
 
-	Client.prototype.knowsTarget = function knowsTarget(name) {
-		return this._targets[name.toLowerCase()] != null;
+	Client.prototype._knowsTargetName = function _knowsTargetName(name) {
+		return name != null && this._targets[name.toLowerCase()] != null;
 	};
 
 	Client.prototype.onInboundEvent = function onInboundEvent(event, callback) {
 		var self = this;
 		this._allTargets.on(event, function _cb_allTargetsInbound(inbound) {
-			var context = self._getTargetFromInbound(inbound);
+			var context = self.server;
+			if (self._knowsTargetName(self._getTargetNameFromInbound(inbound))) {
+				context = self._getTargetFromInbound(inbound);
+			}
 			callback.call(context, inbound);
 		});
 	};
@@ -262,7 +277,10 @@ module.exports = (function client_export() {
 	Client.prototype.onceInboundEvent = function onceInboundEvent(event, callback) {
 		var self = this;
 		this._allTargets.once(event, function _cb_allTargetsInboundOnce(inbound) {
-			var context = self._getTargetFromInbound(inbound);
+			var context = self.server;
+			if (self._knowsTargetName(self._getTargetNameFromInbound(inbound))) {
+				context = self._getTargetFromInbound(inbound);
+			}
 			callback.call(context, inbound);
 		});
 	};
