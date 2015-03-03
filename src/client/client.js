@@ -108,29 +108,33 @@ module.exports = (function client_export() {
 	};
 
 	Client.prototype.register = function register(inbound) {
-		if (this.user.name != null) {
-			this._targets[this.user.name] = null;
-		}
-		this.user.name = this._opts.nick;
-		this._targets[this.user.name] = this.user;
-		this.send(this._opts.getPassCommand());
-		this.send(this._opts.getNickCommand());
-		this.send(this._opts.getUserCommand());
-
 		var self = this;
-		if (this._opts.autoPong) {
-			this.server.onPing(function _cb_onPing(inbound) {
+
+		if (self.user.name != null) {
+			self._targets[self.user.name] = null;
+		}
+		self.user.name = self._opts.nick;
+		self._targets[self.user.name] = self.user;
+		self.send(self._opts.getPassCommand());
+		self.send(self._opts.getNickCommand());
+		self.send(self._opts.getUserCommand());
+
+		if (self._opts.autoPong) {
+			self.server.onPing(function _cb_onPing(inbound) {
 				self.send(new Pong(self.user.name));
 			});
 		}
-		if (this._opts.autoAltNick) {
-			this.server.on(':433', function _cb_onNickAlreadyRegistered() {
+		if (self._opts.autoAltNick) {
+			self.server.on(':433', function _cb_onNickAlreadyRegistered() {
 				if (self.user.name != null) {
 					self._targets[self.user.name] = null;
 				}
 				var cmd = self._opts.getAltNickCommand();
-				if (cmd.middle != null) {
-					self.user.name = cmd.middle;
+				if (cmd.trailing != null) {
+					self.user.name = cmd.trailing;
+					if (self.user.name.charAt(0) == ':') {
+						self.user.name = self.user.name.substring(1);
+					}
 					self._targets[self.user.name] = self.user;
 				}
 				self.send(cmd);
