@@ -5,6 +5,7 @@ IRC Library
 This library is intended to be the building blocks for IRC utilities requiring little or no dependencies. It is developed as a personal project to learn the IRC protocol as well as JavaScript library development.
 
 ###Contents
+- [News](#news)
 - [Status](#status)
 - [Roadmap](#roadmap)
 - [Install](#install)
