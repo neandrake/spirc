@@ -8,6 +8,8 @@ This library is intended to be the building blocks for IRC utilities requiring l
 - [Status](#status)
 - [Roadmap](#roadmap)
 - [Install](#install)
+	- [NPM](#npm)
+	- [Source](#source)
 - [API](#api)
 	- [Overview](#overview)
 	- [Client](#client)
@@ -17,8 +19,14 @@ This library is intended to be the building blocks for IRC utilities requiring l
 	- [Client Options](#client-options)
 - [Resources](#resources)
 
+
+####News
+Version 0.1.4 released March 3rd, 2015. See [release notes](https://github.com/neandrake/spirc/releases/tag/v0.1.4) for details.
+
+Pull Requests are welcome, as well as discussions using Issues.
+
 ####Status
-_May 6 2014 (Version 0.1.2)_
+_April 26, 2015 (Version 0.1.4)_
 
 Only the Client API is only functional.
 - [x] Connect/Disconnect to server
@@ -33,7 +41,7 @@ Only the Client API is only functional.
 Connecting via SSL had been working, but an update to node-js has currently broken this functionality, as it would require accepting self-signed certificates from user. Have looked into workarounds but need to research SSL certificate management for IRC nodes.
 
 ###Roadmap
-_May 6 2014_
+_April 26, 2015_
 - [ ] Promise-ish - Some manner of promises would be useful not only for basic async i/o handling, but at the IRC message level of request/response.
 - [ ] Consistent and Simplified API - Have been working on this some with project layout and API naming and such, once the project expands this will be easier to identify and document. ex: Outbound requests must always be directed at a Target which is currently all managed through convenience methods.
 - [ ] Additional IRC Support - Proper state tracking of IRC specifics, such as modes, targets in a channel, etc. Also any extended info from IRC RFCs.
@@ -42,11 +50,27 @@ _May 6 2014_
 - [ ] IRC Server API - Large project not in the near future.
 
 ###Install
-This project is published through Node Package Manager.
+####NPM
+In your project directory, install spirc
 ```
 $ npm install spirc
 ```
-If using from local git clone, see `examples/example1.js` which includes the repository source files instead of npm.
+Then in your project source, require the spirc library.
+```javascript
+var ircclient = require('spirc').Client;
+```
+Versions will be marked as release on GitHub, then published to npm.
+
+####Source
+If you prefer to not use npm, you can use spirc by cloning the repository.
+```
+$ git clone https://github.com/neandrake/spirc.git
+```
+Then in your project, to require the library you should use a relative path to `main.js`. See `examples/example1.js` for reference.
+```javascript
+var irclient = require('../lib/main.js').Client;
+```
+If you are using spirc for a project in this manner, using git submodules is recommended.
 
 ###API
 ####Overview
