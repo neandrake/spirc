@@ -1,6 +1,6 @@
 {
 	"name": "spirc",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"description": "A lightweight IRC API/Library",
 	"keywords": [
 		"irc",

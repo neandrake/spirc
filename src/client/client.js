@@ -1,5 +1,6 @@
 var net  = require('net');
 var tls = require('tls');
+var eventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 
 var TokenReader = require('../util/tokread.js').TokenReader;
@@ -58,7 +59,7 @@ module.exports = (function client_export() {
 			self.emit('registered', inbound);
 		});
 	};
-	inherits(Client, process.EventEmitter);
+	inherits(Client, eventEmitter);
 
 	Client.prototype.connect = function connect(callback) {
 		var self = this;

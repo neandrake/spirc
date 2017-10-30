@@ -1,3 +1,4 @@
+var eventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 
 var TokenReader = require('../util/tokread.js').TokenReader;
@@ -13,7 +14,7 @@ module.exports = (function targets_export() {
 		this.client = client;
 		this.name = name;
 	};
-	inherits(Target, process.EventEmitter);
+	inherits(Target, eventEmitter);
 
 	Target.prototype.onInbound = function onInbound(callback) {
 		this.client.on('inbound', callback);
