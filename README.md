@@ -4,7 +4,7 @@ IRC Library
 
 This library is intended to be the building blocks for IRC utilities requiring little or no dependencies. It is developed as a personal project to learn the IRC protocol as well as JavaScript library development.
 
-###Contents
+### Contents
 - [News](#news)
 - [Status](#status)
 - [Roadmap](#roadmap)
@@ -21,14 +21,12 @@ This library is intended to be the building blocks for IRC utilities requiring l
 - [Resources](#resources)
 
 
-####News
-Version 0.1.4 released March 3rd, 2015. See [release notes](https://github.com/neandrake/spirc/releases/tag/v0.1.4) for details.
+#### News
+Version 0.1.5 released October 31st, 2017. See [release notes](https://github.com/neandrake/spirc/releases/tag/v0.1.5) for details.
 
 Pull Requests are welcome, as well as discussions using Issues.
 
-####Status
-_April 26, 2015 (Version 0.1.4)_
-
+#### Status
 Only the Client API is only functional.
 - [x] Connect/Disconnect to server
 - [x] Register User
@@ -41,7 +39,7 @@ Only the Client API is only functional.
 
 Connecting via SSL had been working, but an update to node-js has currently broken this functionality, as it would require accepting self-signed certificates from user. Have looked into workarounds but need to research SSL certificate management for IRC nodes.
 
-###Roadmap
+### Roadmap
 _April 26, 2015_
 - [ ] Promise-ish - Some manner of promises would be useful not only for basic async i/o handling, but at the IRC message level of request/response.
 - [ ] Consistent and Simplified API - Have been working on this some with project layout and API naming and such, once the project expands this will be easier to identify and document. ex: Outbound requests must always be directed at a Target which is currently all managed through convenience methods.
@@ -50,8 +48,8 @@ _April 26, 2015_
 - [ ] CTCP - XDCC, etc.
 - [ ] IRC Server API - Large project not in the near future.
 
-###Install
-####NPM
+### Install
+#### NPM
 In your project directory, install spirc
 ```
 $ npm install spirc
@@ -62,7 +60,7 @@ var ircclient = require('spirc').Client;
 ```
 Versions will be marked as release on GitHub, then published to npm.
 
-####Source
+#### Source
 If you prefer to not use npm, you can use spirc by cloning the repository.
 ```
 $ git clone https://github.com/neandrake/spirc.git
@@ -73,15 +71,15 @@ var irclient = require('../lib/main.js').Client;
 ```
 If you are using spirc for a project in this manner, using git submodules is recommended.
 
-###API
-####Overview
+### API
+#### Overview
 - After connecting successfully to a server, a `register` event is emitted on the client, which is the appropriate time to auto-join channels.
 - Messages received are `Inbound` objects.
 - Messages sent are `Outbound` objects.
 - Messages are emitted from `Target`s, which can either be `Host`s, `Channel`s, or `User`s.
 - IRC Message events emitted from targets are directly named from the message command, but are prefixed with ':' character in order to differentiate from other events emitted from the target. Examples are ':PRIVMSG' or ':433'.
 
-####Client
+#### Client
 The `Client` object contains a method `send` for sending an `Outbound` request, which is used by all the convenience methods.
 ```javascript
 var req = require('spirc').Requests;
@@ -101,7 +99,7 @@ The `Client` object also provides methods for registering listeners for when any
 
 The client's socket reading, as well as the target's `pipe` method use `TokenReader` object. This is a simple object that emits `token` events with data based on a given delimiter. The default delimiter is the newline character.
 
-####Targets
+#### Targets
 __Target__ defines several convenience methods
 - `say` - sends a PRIVMSG command to the target.
 - `onSaid` - register a listener for PRIVMSG messages directed at this target.
@@ -117,7 +115,7 @@ __Host__ is a Target and also contains these convenience methods
 - `quit` - disconnect from the irc server, can provide leaving message.
 - `onPing` - convenience for registering a listener whena PING message is received
 
-####Events
+#### Events
 When an inbound message is received these events are fired:
 - If the inbound message could not properly be parsed as an IRC message, an `error` event is fired.
 - The `_allTargets` emits an `inbound` event with the inbound message.
@@ -127,7 +125,7 @@ When an inbound message is received these events are fired:
 
 When an outbound message is sent, the client emits an `outbound` event with the outbound message.
 
-####Examples
+#### Examples
 Simple example of a bot that connects to a server, joins a channel, then echoes all messages received from the channel or PM back to the channel.
 ```javascript
 var Client = require('spirc').Client;
@@ -171,7 +169,7 @@ chan.onSaid(respond);
 client.connect();
 ```
 
-####Client Options
+#### Client Options
 `Client` constructor parses the object parameter as a `ClientOpts`, and can specify:
 ```javascript
 {
@@ -200,8 +198,7 @@ client.connect();
 }
 ```
 
-
-###Resources
+### Resources
 - [RFC 1459: Internet Relay Chat Protocol (pdf)](http://tools.ietf.org/pdf/rfc1459.pdf)
 - [RFC 2810: Internet Relay Chat: Architecture (pdf)](http://tools.ietf.org/pdf/rfc2810.pdf)
 - [RFC 2811: Internet Relay Chat: Channel Management (pdf)](http://tools.ietf.org/pdf/rfc2811.pdf) 
