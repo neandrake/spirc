@@ -40,7 +40,6 @@ Only the Client API is only functional.
 Connecting via SSL had been working, but an update to node-js has currently broken this functionality, as it would require accepting self-signed certificates from user. Have looked into workarounds but need to research SSL certificate management for IRC nodes.
 
 ### Roadmap
-_April 26, 2015_
 - [ ] Promise-ish - Some manner of promises would be useful not only for basic async i/o handling, but at the IRC message level of request/response.
 - [ ] Consistent and Simplified API - Have been working on this some with project layout and API naming and such, once the project expands this will be easier to identify and document. ex: Outbound requests must always be directed at a Target which is currently all managed through convenience methods.
 - [ ] Additional IRC Support - Proper state tracking of IRC specifics, such as modes, targets in a channel, etc. Also any extended info from IRC RFCs.
