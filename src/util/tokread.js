@@ -1,4 +1,4 @@
-var eventEmitter = require('events').EventEmitter;
+var events = require('events');
 var inherits = require('util').inherits;
 
 module.exports = (function tokread_export() {
@@ -36,7 +36,7 @@ module.exports = (function tokread_export() {
 			}
 		});
 	};
-	inherits(TokenReader, eventEmitter);
+	inherits(TokenReader, events.EventEmitter);
 
 	return {
 		TokenReader: TokenReader
