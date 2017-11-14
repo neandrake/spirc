@@ -247,7 +247,10 @@ module.exports = (function client_export() {
 
 	Client.prototype._getTargetNameFromInbound = function _getTargetNameFromInbound(inbound) {
 		var name = null;
-		if (inbound.params != null && inbound.params.length > 0) {
+		if (inbound.middle != null && inbound.middle.length > 0) {
+			name = inbound.middle[0];
+		}
+		if (name == null && inbound.params != null && inbound.params.length > 0) {
 			name = inbound.params[0];
 		}
 		if (name == null && inbound.prefix != null) {
